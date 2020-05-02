@@ -1,0 +1,3 @@
+[report]
+fail_under = 80.00
+precision = 2
