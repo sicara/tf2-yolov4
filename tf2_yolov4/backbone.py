@@ -1,22 +1,48 @@
+"""Implements YOLOv4 backbone layer: CSPDarknet53"""
 import tensorflow as tf
 import tensorflow_addons as tfa
 
 
-def conv_bn_mish(x, filters, kernel_size, strides, padding="same"):
+def conv_bn_mish(inputs, filters, kernel_size, strides, padding="same"):
+    """
+    Applies successively Conv2D -> BN -> Mish
+
+    Args:
+        inputs (tf.Tensor): 4D input tensor
+        filters (int): Number of convolutional filters
+        kernel_size (int): Size of the convolutional kernel
+        strides (int): Strides used for the convolution
+        padding (str): Type of padding used in the convolution
+
+    Returns:
+        tf.Tensor: 4D output tensor
+    """
     x = tf.keras.layers.Conv2D(
         filters=filters,
         kernel_size=kernel_size,
         strides=strides,
         padding=padding,
         use_bias=False,
-    )(x)
+    )(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
     x = tfa.activations.mish(x)
 
     return x
 
 
-def residual_block(x, filters, num_blocks):
+def residual_block(inputs, filters, num_blocks):
+    """
+    Applies several residual connections.
+
+    Args:
+        inputs (tf.Tensor): 4D input tensor
+        filters (int): Number of convolutional filters
+        num_blocks (int): Number of residual blocks
+
+    Returns:
+        tf.Tensor: 4D output Tensor
+    """
+    x = inputs
     for _ in range(num_blocks):
         block_inputs = x
         x = conv_bn_mish(x, filters, kernel_size=(1, 1), strides=1)
@@ -27,14 +53,27 @@ def residual_block(x, filters, num_blocks):
     return x
 
 
-def CSPBlock(x, filters, num_blocks):
+def CSPBlock(inputs, filters, num_blocks):
+    """
+    Create a CSPBlock which applies the following scheme to the input (N, H, W, C):
+        - the first part (N, H, W, C // 2) goes into a series of residual connection
+        - the second part is directly concatenated to the output of the previous operation
+
+    Args:
+        inputs (tf.Tensor): 4D input tensor
+        filters (int): Number of filters to use
+        num_blocks (int): Number of residual blocks to apply
+
+    Returns:
+        tf.Tensor: 4D output tensor
+    """
     half_filters = filters // 2
 
-    x = conv_bn_mish(x, filters=filters, kernel_size=3, strides=2)
+    x = conv_bn_mish(inputs, filters=filters, kernel_size=3, strides=2)
     route = conv_bn_mish(x, filters=half_filters, kernel_size=1, strides=1)
     x = conv_bn_mish(x, filters=half_filters, kernel_size=1, strides=1)
 
-    x = residual_block(x, filters=filters // 2, num_blocks=num_blocks, shortcut=True)
+    x = residual_block(x, filters=filters // 2, num_blocks=num_blocks)
     x = conv_bn_mish(x, filters=half_filters, kernel_size=1, strides=1)
     x = tf.keras.layers.Concatenate()([x, route])
 

@@ -249,7 +249,8 @@ function-naming-style=snake_case
 
 # Regular expression matching correct function names. Overrides function-
 # naming-style.
-#function-rgx=
+function-rgx=(([a-z_][a-z0-9_]{2,})|(_[a-z0-9_]*)|(__[a-z][a-z0-9_]+__)|[A-Z_][a-zA-Z0-9]{2,}$|(__[a-z][a-zA-Z0-9_]+__)$)
+
 
 # Good variable names which should always be accepted, separated by a comma.
 good-names=i,
@@ -301,7 +302,8 @@ variable-naming-style=snake_case
 
 # Regular expression matching correct variable names. Overrides variable-
 # naming-style.
-#variable-rgx=
+# Add `x` as valid variable named, as it is commonly used to define neural networks in TF
+variable-rgx=(([a-z_][a-z0-9_]{2,})|(_[a-z0-9_]*)|(__[a-z][a-z0-9_]+__)|(x))
 
 
 [MISCELLANEOUS]
@@ -328,7 +330,7 @@ indent-after-paren=4
 indent-string='    '
 
 # Maximum number of characters on a single line.
-max-line-length=100
+max-line-length=120
 
 # Maximum number of lines in a module.
 max-module-lines=1000
