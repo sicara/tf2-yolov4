@@ -119,7 +119,7 @@ def CSPDarknet53(input_shape):
     # Fifth downsampling: L616 -> L744
     output_3 = CSPBlock(output_2, filters=1024, num_blocks=4)
 
-    return tf.keras.Model(inputs, [output_1, output_2, output_3])
+    return tf.keras.Model(inputs, [output_3, output_2, output_1])
 
 
 if __name__ == "__main__":
