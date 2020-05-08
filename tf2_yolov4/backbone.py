@@ -45,8 +45,8 @@ def residual_block(inputs, filters, num_blocks):
     x = inputs
     for _ in range(num_blocks):
         block_inputs = x
-        x = conv_bn_mish(x, filters, kernel_size=(1, 1), strides=1)
-        x = conv_bn_mish(x, filters, kernel_size=(3, 3), strides=1)
+        x = conv_bn_mish(x, filters, kernel_size=1, strides=1)
+        x = conv_bn_mish(x, filters, kernel_size=3, strides=1)
 
         x = x + block_inputs
 
