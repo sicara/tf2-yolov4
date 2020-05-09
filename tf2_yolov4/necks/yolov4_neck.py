@@ -28,7 +28,7 @@ def conv_bn_leaky(inputs, filters, kernel_size, strides, padding="same"):
     return x
 
 
-def neck(input_shapes):
+def YOLOv4_neck(input_shapes):
     """
     Implements the neck of YOLOv4, including the SPP.
 

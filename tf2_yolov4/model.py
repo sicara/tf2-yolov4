@@ -3,8 +3,8 @@ Model class for YOLOv4
 """
 import tensorflow as tf
 
-from tf2_yolov4.backbone import CSPDarknet53
-from tf2_yolov4.neck import neck
+from tf2_yolov4.backbones.CSPDarknet53 import CSPDarknet53
+from tf2_yolov4.necks.yolov4_neck import YOLOv4_neck
 
 
 class YOLOv4(tf.keras.Model):
@@ -19,7 +19,7 @@ class YOLOv4(tf.keras.Model):
         """
         super(YOLOv4, self).__init__()
         self.backbone = CSPDarknet53(input_shape)
-        self.neck = neck(input_shapes=self.backbone.output_shape)
+        self.neck = YOLOv4_neck(input_shapes=self.backbone.output_shape)
 
     def call(self, inputs, training=None, mask=None):
         lower_features = self.backbone(inputs)
