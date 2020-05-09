@@ -39,9 +39,9 @@ def neck(input_shapes):
     Returns:
         tf.keras.Model: Neck model
     """
-    input_1 = tf.keras.Input(shape=input_shapes[0])
-    input_2 = tf.keras.Input(shape=input_shapes[1])
-    input_3 = tf.keras.Input(shape=input_shapes[2])
+    input_1 = tf.keras.Input(shape=filter(None, input_shapes[0]))
+    input_2 = tf.keras.Input(shape=filter(None, input_shapes[1]))
+    input_3 = tf.keras.Input(shape=filter(None, input_shapes[2]))
 
     x1 = conv_bn_leaky(input_1, filters=512, kernel_size=1, strides=1)
     x1 = conv_bn_leaky(x1, filters=1024, kernel_size=3, strides=1)

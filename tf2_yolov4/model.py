@@ -4,10 +4,12 @@ Model class for YOLOv4
 import tensorflow as tf
 
 from tf2_yolov4.backbone import CSPDarknet53
+from tf2_yolov4.neck import neck
 
 
 class YOLOv4(tf.keras.Model):
     """YOLOv4 Model"""
+
     def __init__(self, input_shape):
         """
         Constructor
@@ -16,13 +18,16 @@ class YOLOv4(tf.keras.Model):
             input_shape (Tuple[int]): Input shape of the image
         """
         super(YOLOv4, self).__init__()
-        self.cspdarknet53 = CSPDarknet53(input_shape)
+        self.backbone = CSPDarknet53(input_shape)
+        self.neck = neck(input_shapes=self.backbone.output_shape)
 
     def call(self, inputs, training=None, mask=None):
-        return self.cspdarknet53(inputs)
+        lower_features = self.backbone(inputs)
+        upper_features = self.neck(lower_features)
+        return upper_features
 
 
 if __name__ == "__main__":
     model = YOLOv4((416, 416, 3))
     outputs = model.predict(tf.random.uniform((16, 416, 416, 3)))
-    print(outputs[0].shape)
+    [print(output.shape) for output in outputs]
