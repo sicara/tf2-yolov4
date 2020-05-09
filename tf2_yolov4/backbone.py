@@ -8,14 +8,14 @@ def conv_bn_mish(inputs, filters, kernel_size, strides, padding="same"):
     Applies successively Conv2D -> BN -> Mish
 
     Args:
-        inputs (tf.Tensor): 4D input tensor
+        inputs (tf.Tensor): 4D (N,H,W,C) input tensor
         filters (int): Number of convolutional filters
         kernel_size (int): Size of the convolutional kernel
         strides (int): Strides used for the convolution
         padding (str): Type of padding used in the convolution
 
     Returns:
-        tf.Tensor: 4D output tensor
+        tf.Tensor: 4D (N,H,W,C) output tensor
     """
     x = tf.keras.layers.Conv2D(
         filters=filters,
@@ -35,12 +35,12 @@ def residual_block(inputs, filters, num_blocks):
     Applies several residual connections.
 
     Args:
-        inputs (tf.Tensor): 4D input tensor
+        inputs (tf.Tensor): 4D (N,H,W,C) input tensor
         filters (int): Number of convolutional filters
         num_blocks (int): Number of residual blocks
 
     Returns:
-        tf.Tensor: 4D output Tensor
+        tf.Tensor: 4D (N,H,W,C) output Tensor
     """
     x = inputs
     for _ in range(num_blocks):
@@ -60,12 +60,12 @@ def CSPBlock(inputs, filters, num_blocks):
         - the second part is directly concatenated to the output of the previous operation
 
     Args:
-        inputs (tf.Tensor): 4D input tensor
+        inputs (tf.Tensor): 4D (N,H,W,C) input tensor
         filters (int): Number of filters to use
         num_blocks (int): Number of residual blocks to apply
 
     Returns:
-        tf.Tensor: 4D output tensor
+        tf.Tensor: 4D (N,H,W,C) output tensor
     """
     half_filters = filters // 2
 
