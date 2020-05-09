@@ -43,15 +43,15 @@ def neck(input_shapes):
     input_2 = tf.keras.Input(shape=filter(None, input_shapes[1]))
     input_3 = tf.keras.Input(shape=filter(None, input_shapes[2]))
 
-    x1 = conv_bn_leaky(input_1, filters=512, kernel_size=1, strides=1)
-    x1 = conv_bn_leaky(x1, filters=1024, kernel_size=3, strides=1)
-    x1 = conv_bn_leaky(x1, filters=512, kernel_size=1, strides=1)
+    x = conv_bn_leaky(input_1, filters=512, kernel_size=1, strides=1)
+    x = conv_bn_leaky(x, filters=1024, kernel_size=3, strides=1)
+    x = conv_bn_leaky(x, filters=512, kernel_size=1, strides=1)
 
-    maxpool_1 = tf.keras.layers.MaxPool2D((5, 5), strides=1, padding="same")(x1)
-    maxpool_2 = tf.keras.layers.MaxPool2D((9, 9), strides=1, padding="same")(x1)
-    maxpool_3 = tf.keras.layers.MaxPool2D((13, 13), strides=1, padding="same")(x1)
+    maxpool_1 = tf.keras.layers.MaxPool2D((5, 5), strides=1, padding="same")(x)
+    maxpool_2 = tf.keras.layers.MaxPool2D((9, 9), strides=1, padding="same")(x)
+    maxpool_3 = tf.keras.layers.MaxPool2D((13, 13), strides=1, padding="same")(x)
 
-    spp = tf.keras.layers.Concatenate()([maxpool_3, maxpool_2, maxpool_1, x1])
+    spp = tf.keras.layers.Concatenate()([maxpool_3, maxpool_2, maxpool_1, x])
 
     x = conv_bn_leaky(spp, filters=512, kernel_size=1, strides=1)
     x = conv_bn_leaky(x, filters=1024, kernel_size=3, strides=1)
