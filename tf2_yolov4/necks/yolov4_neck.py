@@ -85,5 +85,5 @@ def YOLOv4_neck(input_shapes):
 
 
 if __name__ == "__main__":
-    model = neck([(13, 13, 1024), (26, 26, 512), (52, 52, 256)])
+    model = YOLOv4_neck([(13, 13, 1024), (26, 26, 512), (52, 52, 256)])
     model.summary()
