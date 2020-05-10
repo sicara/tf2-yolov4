@@ -20,19 +20,21 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: 3.7
-      - name: Cache pip
+      - name: Update pip and install virtualenv
+        run: |
+          python -m pip install --upgrade pip
+          pip install virtualenv
+      - name: Cache dependencies
         id: cache
         uses: actions/cache@v1
         with:
-          path: ~/.cache/pip
-          key: 3.7-lint-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+          path: .venv
+          key: 3.7-venv-lint3-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt && pip install tensorflow==2.1.0
+        run: virtualenv .venv -p python3 && . .venv/bin/activate && pip install -r requirements-dev.txt && pip install tensorflow==2.1.0
       - name: Lint with pylint and black
-        run: make lint
+        run: . .venv/bin/activate && make lint
 
   tests:
 
@@ -47,16 +49,18 @@ jobs:
         uses: actions/setup-python@v1
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Cache pip
+      - name: Update pip and install virtualenv
+        run: |
+          python -m pip install --upgrade pip
+          pip install virtualenv
+      - name: Cache dependencies
         id: cache
         uses: actions/cache@v1
         with:
-          path: ~/.cache/pip
-          key: ${{ matrix.python-version }}-test-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+          path: .venv
+          key: ${{ matrix.python-version }}-venv-test3-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
       - name: Install dependencies
         if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements-dev.txt && pip install tensorflow==2.1.0
+        run: virtualenv .venv -p python3 && . .venv/bin/activate && pip install -r requirements-dev.txt && pip install tensorflow==2.1.0
       - name: Test with pytest
-        run: make test
+        run: . .venv/bin/activate && make test && echo "lol"
