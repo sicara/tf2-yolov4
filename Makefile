@@ -7,3 +7,6 @@ install:
 
 test:
 	. .venv/bin/activate && pytest -vv --cov-report term-missing --no-cov-on-fail --cov=tf2_yolov4/ .
+
+lint:
+	. .venv/bin/activate &&  pylint tf2_yolov4
