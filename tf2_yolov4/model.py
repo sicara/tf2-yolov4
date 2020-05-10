@@ -4,9 +4,9 @@ Model class for YOLOv4
 import numpy as np
 import tensorflow as tf
 
-from tf2_yolov4.backbones.csp_darknet53 import CSPDarknet53
-from tf2_yolov4.heads.yolov3_head import YOLOv3_head
-from tf2_yolov4.necks.yolov4_neck import YOLOv4_neck
+from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
+from tf2_yolov4.heads.yolov3_head import yolov3_head
+from tf2_yolov4.necks.yolov4_neck import yolov4_neck
 
 
 class YOLOv4(tf.keras.Model):
@@ -18,13 +18,23 @@ class YOLOv4(tf.keras.Model):
 
         Args:
             input_shape (Tuple[int]): Input shape of the image
+            anchors (List[numpy.array[int, 2]]): List of 3 numpy arrays containing the anchor sizes used for each stage.
+                The first and second columns of the numpy arrays contain respectively the height and the width of the
+                anchors.
+            num_classes (int): Number of classes.
         """
         super(YOLOv4, self).__init__(name="YOLOv4")
-        self.backbone = CSPDarknet53(input_shape)
-        self.neck = YOLOv4_neck(input_shapes=self.backbone.output_shape)
-        self.head = YOLOv3_head(input_shapes=self.neck.output_shape, anchors=anchors, num_classes=num_classes)
+        self.backbone = csp_darknet53(input_shape)
+        self.neck = yolov4_neck(input_shapes=self.backbone.output_shape)
+        self.head = yolov3_head(input_shapes=self.neck.output_shape, anchors=anchors, num_classes=num_classes)
 
     def call(self, inputs, training=None, mask=None):
+        """
+        YOLOv4's forward pass
+
+        Args:
+            inputs (tf.Tensor): 4D (N,H,W,C) input tensor
+        """
         lower_features = self.backbone(inputs)
         medium_features = self.neck(lower_features)
         upper_features = self.head(medium_features)
@@ -42,4 +52,5 @@ if __name__ == "__main__":
 
     outputs = model.predict(tf.random.uniform((16, 416, 416, 3)))
     model.summary()
-    [print(output.shape) for output in outputs]
+    for output in outputs:
+        print(output.shape)

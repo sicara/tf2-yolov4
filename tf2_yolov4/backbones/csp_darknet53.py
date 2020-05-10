@@ -53,7 +53,7 @@ def residual_block(inputs, filters, num_blocks):
     return x
 
 
-def CSPBlock(inputs, filters, num_blocks):
+def csp_block(inputs, filters, num_blocks):
     """
     Create a CSPBlock which applies the following scheme to the input (N, H, W, C):
         - the first part (N, H, W, C // 2) goes into a series of residual connection
@@ -82,7 +82,7 @@ def CSPBlock(inputs, filters, num_blocks):
     return x
 
 
-def CSPDarknet53(input_shape):
+def csp_darknet53(input_shape):
     """
     CSPDarknet53 implementation based on AlexeyAB/darknet config
 
@@ -108,20 +108,20 @@ def CSPDarknet53(input_shape):
     x = conv_bn_mish(x, filters=64, kernel_size=1, strides=1)
 
     # Second downsampling: L105 -> L191
-    x = CSPBlock(x, filters=128, num_blocks=2)
+    x = csp_block(x, filters=128, num_blocks=2)
 
     # Third downsampling: L193 -> L400
-    output_1 = CSPBlock(x, filters=256, num_blocks=8)
+    output_1 = csp_block(x, filters=256, num_blocks=8)
 
     # Fourth downsampling: L402 -> L614
-    output_2 = CSPBlock(output_1, filters=512, num_blocks=8)
+    output_2 = csp_block(output_1, filters=512, num_blocks=8)
 
     # Fifth downsampling: L616 -> L744
-    output_3 = CSPBlock(output_2, filters=1024, num_blocks=4)
+    output_3 = csp_block(output_2, filters=1024, num_blocks=4)
 
     return tf.keras.Model(inputs, [output_3, output_2, output_1], name="CSPDarknet53")
 
 
 if __name__ == "__main__":
-    cspdarknet53 = CSPDarknet53((416, 416, 3))
+    cspdarknet53 = csp_darknet53((416, 416, 3))
     cspdarknet53.summary()

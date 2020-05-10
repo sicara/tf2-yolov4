@@ -1,3 +1,4 @@
+"""Implements the neck of YOLOv4, including the SPP and the modified PAN"""
 import tensorflow as tf
 
 
@@ -28,9 +29,9 @@ def conv_bn_leaky(inputs, filters, kernel_size, strides, padding="same"):
     return x
 
 
-def YOLOv4_neck(input_shapes):
+def yolov4_neck(input_shapes):
     """
-    Implements the neck of YOLOv4, including the SPP.
+    Implements the neck of YOLOv4, including the SPP and the modified PAN.
 
     Args:
         input_shapes (List[Tuple[int]]): List of 3 tuples, which are the output shapes of the backbone.
@@ -85,5 +86,5 @@ def YOLOv4_neck(input_shapes):
 
 
 if __name__ == "__main__":
-    model = YOLOv4_neck([(13, 13, 1024), (26, 26, 512), (52, 52, 256)])
+    model = yolov4_neck([(13, 13, 1024), (26, 26, 512), (52, 52, 256)])
     model.summary()

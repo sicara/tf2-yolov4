@@ -1,19 +1,18 @@
+"""Implements YOLOv3 head, which is used in YOLOv4"""
 import numpy as np
 import tensorflow as tf
 
 
-def YOLOv3_head(input_shapes, anchors, num_classes):
+def yolov3_head(input_shapes, anchors, num_classes):
     """
-    Implements the head of YOLOv4, which is YOLOv3 head
+    Returns the YOLOv3 head, which is used in YOLOv4
 
     Args:
         input_shapes (List[Tuple[int]]): List of 3 tuples, which are the output shapes of the neck.
+            None dimensions are ignored.
             For CSPDarknet53+YOLOv4_neck, those are: [(13, 13, 512), (26, 26, 256) (52, 52, 128)] for a (416,416) input.
-            None dimensions are ignored
-        anchors (List[numpy.array[int, 2]]): List of 3 numpy arrays which contain the anchors dimensions used for
-        each stage.
-            The first and second columns of the numpy arrays contain respectively the height and the width of the
-            anchors.
+        anchors (List[numpy.array[int, 2]]): List of 3 numpy arrays containing the anchor sizes used for each stage.
+            The first and second columns of the numpy arrays respectively contain the anchors height and width.
         num_classes (int): Number of classes.
 
     Returns:
@@ -23,11 +22,11 @@ def YOLOv3_head(input_shapes, anchors, num_classes):
     input_2 = tf.keras.Input(shape=filter(None, input_shapes[1]))
     input_3 = tf.keras.Input(shape=filter(None, input_shapes[2]))
 
-    y1 = conv_classes_anchors(input_1, num_anchors_stage=len(anchors[0]), num_classes=num_classes)
-    y2 = conv_classes_anchors(input_2, num_anchors_stage=len(anchors[1]), num_classes=num_classes)
-    y3 = conv_classes_anchors(input_3, num_anchors_stage=len(anchors[2]), num_classes=num_classes)
+    output_1 = conv_classes_anchors(input_1, num_anchors_stage=len(anchors[0]), num_classes=num_classes)
+    output_2 = conv_classes_anchors(input_2, num_anchors_stage=len(anchors[1]), num_classes=num_classes)
+    output_3 = conv_classes_anchors(input_3, num_anchors_stage=len(anchors[2]), num_classes=num_classes)
 
-    return tf.keras.Model([input_1, input_2, input_3], [y1, y2, y3], name="YOLOv3_head")
+    return tf.keras.Model([input_1, input_2, input_3], [output_1, output_2, output_3], name="YOLOv3_head")
 
 
 def conv_classes_anchors(inputs, num_anchors_stage, num_classes):
@@ -64,5 +63,5 @@ if __name__ == "__main__":
         np.array([(10, 13), (16, 30), (33, 23)], np.float32) / 416
     ]
 
-    model = YOLOv3_head([(13, 13, 1024), (26, 26, 512), (52, 52, 256)], anchors=yolov3_anchors, num_classes=80)
+    model = yolov3_head([(13, 13, 1024), (26, 26, 512), (52, 52, 256)], anchors=yolov3_anchors, num_classes=80)
     model.summary()
