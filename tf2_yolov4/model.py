@@ -1,10 +1,10 @@
 """
 Model class for YOLOv4
 """
-import numpy as np
 import tensorflow as tf
 
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
+from tf2_yolov4.config.anchors import YOLOv4Config
 from tf2_yolov4.heads.yolov3_head import yolov3_head
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
 
@@ -46,13 +46,12 @@ class YOLOv4(tf.keras.Model):
 
 
 if __name__ == "__main__":
-    yolov4_anchors = [
-        np.array([(142, 110), (192, 243), (459, 401)], np.float32) / 416,
-        np.array([(36, 75), (76, 55), (72, 146)], np.float32) / 416,
-        np.array([(12, 16), (19, 36), (40, 28)], np.float32) / 416,
-    ]
 
-    model = YOLOv4(input_shape=(416, 416, 3), anchors=yolov4_anchors, num_classes=80)
+    model = YOLOv4(
+        input_shape=(416, 416, 3),
+        anchors=YOLOv4Config.get_yolov4_anchors(),
+        num_classes=80,
+    )
 
     outputs = model.predict(tf.random.uniform((16, 416, 416, 3)))
     model.summary()

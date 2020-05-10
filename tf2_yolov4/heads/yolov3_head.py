@@ -1,6 +1,7 @@
 """Implements YOLOv3 head, which is used in YOLOv4"""
-import numpy as np
 import tensorflow as tf
+
+from tf2_yolov4.config.anchors import YOLOv4Config
 
 
 def yolov3_head(input_shapes, anchors, num_classes):
@@ -60,21 +61,16 @@ def conv_classes_anchors(inputs, num_anchors_stage, num_classes):
         # use_bias To doubleCheck. is false in yolov3 tf2, is not specified in yolov4.cfg and true in pytorch yolov4
     )(inputs)
     x = tf.keras.layers.Reshape(
-        ((x.shape[1], x.shape[2], num_anchors_stage, num_classes + 5))
+        (x.shape[1], x.shape[2], num_anchors_stage, num_classes + 5)
     )(x)
     return x
 
 
 if __name__ == "__main__":
-    yolov3_anchors = [
-        np.array([(116, 90), (156, 198), (373, 326)], np.float32) / 416,
-        np.array([(30, 61), (62, 45), (59, 119)], np.float32) / 416,
-        np.array([(10, 13), (16, 30), (33, 23)], np.float32) / 416,
-    ]
 
     model = yolov3_head(
         [(13, 13, 1024), (26, 26, 512), (52, 52, 256)],
-        anchors=yolov3_anchors,
+        anchors=YOLOv4Config.get_yolov3_anchors(),
         num_classes=80,
     )
     model.summary()

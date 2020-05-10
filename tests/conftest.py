@@ -1,7 +1,7 @@
-import numpy as np
 import pytest
 
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
+from tf2_yolov4.config.anchors import YOLOv4Config
 from tf2_yolov4.heads.yolov3_head import yolov3_head
 from tf2_yolov4.model import YOLOv4
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
@@ -23,19 +23,20 @@ def yolov4_neck_416():
 
 
 @pytest.fixture(scope="session")
-def yolov3_head_416():
+def yolov3_head_416(num_classes):
     input_shapes = [
         (13, 13, 512),
         (26, 26, 256),
         (52, 52, 128)
     ]
 
-    anchors = [
-        np.array([(142, 110), (192, 243), (459, 401)], np.float32) / 416,
-        np.array([(36, 75), (76, 55), (72, 146)], np.float32) / 416,
-        np.array([(12, 16), (19, 36), (40, 28)], np.float32) / 416
-    ]
-    return yolov3_head(input_shapes, anchors=anchors, num_classes=80)
+    anchors = YOLOv4Config.get_yolov4_anchors()
+    return yolov3_head(input_shapes, anchors=anchors, num_classes=num_classes)
+
+
+@pytest.fixture(scope="session")
+def num_classes():
+    return 40
 
 
 @pytest.fixture(scope="session")
