@@ -14,9 +14,7 @@ setup(
     url="https://github.com/sicara/tf2-yolov4",
     license="MIT",
     install_requires=[],
-    extras_require={
-        "publish": ["bumpversion>=0.5.3", "twine>=1.13.0"],
-    },
+    extras_require={"publish": ["bumpversion>=0.5.3", "twine>=1.13.0"],},
     packages=find_packages(),
     python_requires=">=3.6",
     classifiers=[
