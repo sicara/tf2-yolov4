@@ -3,6 +3,7 @@ import pytest
 
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
 from tf2_yolov4.heads.yolov3_head import yolov3_head
+from tf2_yolov4.model import YOLOv4
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
 
 
@@ -35,3 +36,12 @@ def yolov3_head_416():
         np.array([(12, 16), (19, 36), (40, 28)], np.float32) / 416
     ]
     return yolov3_head(input_shapes, anchors=anchors, num_classes=80)
+
+
+@pytest.fixture(scope="session")
+def yolov4(cspdarknet53_416, yolov4_neck_416, yolov3_head_416, session_mocker):
+    session_mocker.patch('tf2_yolov4.model.csp_darknet53').return_value = cspdarknet53_416
+    session_mocker.patch('tf2_yolov4.model.yolov4_neck').return_value = yolov4_neck_416
+    session_mocker.patch('tf2_yolov4.model.yolov3_head').return_value = yolov3_head_416
+
+    return YOLOv4(None, None, 0)

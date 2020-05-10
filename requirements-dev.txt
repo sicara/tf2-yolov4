@@ -19,6 +19,7 @@ pylint==2.5.0
 pyparsing==2.4.7
 pytest==5.4.1
 pytest-cov==2.8.1
+pytest-mock==3.1.0
 regex==2020.4.4
 six==1.14.0
 toml==0.10.0
