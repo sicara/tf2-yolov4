@@ -5,6 +5,10 @@
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 [![Python package](https://github.com/sicara/tf2-yolov4/workflows/Python%20package/badge.svg?branch=master)](https://github.com/sicara/tf2-yolov4/actions?query=workflow%3A%22Python+package%22)
 
+## Requirements:
+- MacOs >= 10.15 since tensorflow-addons is not available for older release of MacOs
+- Python >= 3.5 and < 3.8 since tensorflow-addons is not available for every python distribution
+
 ## Work in Progress
 
 - [ ] Inference

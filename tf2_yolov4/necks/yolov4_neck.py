@@ -1,3 +1,4 @@
+"""Implements the neck of YOLOv4, including the SPP and the modified PAN"""
 import tensorflow as tf
 
 
@@ -28,9 +29,9 @@ def conv_bn_leaky(inputs, filters, kernel_size, strides, padding="same"):
     return x
 
 
-def neck(input_shapes):
+def yolov4_neck(input_shapes):
     """
-    Implements the neck of YOLOv4, including the SPP.
+    Implements the neck of YOLOv4, including the SPP and the modified PAN.
 
     Args:
         input_shapes (List[Tuple[int]]): List of 3 tuples, which are the output shapes of the backbone.
@@ -39,19 +40,19 @@ def neck(input_shapes):
     Returns:
         tf.keras.Model: Neck model
     """
-    input_1 = tf.keras.Input(shape=input_shapes[0])
-    input_2 = tf.keras.Input(shape=input_shapes[1])
-    input_3 = tf.keras.Input(shape=input_shapes[2])
+    input_1 = tf.keras.Input(shape=filter(None, input_shapes[0]))
+    input_2 = tf.keras.Input(shape=filter(None, input_shapes[1]))
+    input_3 = tf.keras.Input(shape=filter(None, input_shapes[2]))
 
-    x1 = conv_bn_leaky(input_1, filters=512, kernel_size=1, strides=1)
-    x1 = conv_bn_leaky(x1, filters=1024, kernel_size=3, strides=1)
-    x1 = conv_bn_leaky(x1, filters=512, kernel_size=1, strides=1)
+    x = conv_bn_leaky(input_1, filters=512, kernel_size=1, strides=1)
+    x = conv_bn_leaky(x, filters=1024, kernel_size=3, strides=1)
+    x = conv_bn_leaky(x, filters=512, kernel_size=1, strides=1)
 
-    maxpool_1 = tf.keras.layers.MaxPool2D((5, 5), strides=1, padding="same")(x1)
-    maxpool_2 = tf.keras.layers.MaxPool2D((9, 9), strides=1, padding="same")(x1)
-    maxpool_3 = tf.keras.layers.MaxPool2D((13, 13), strides=1, padding="same")(x1)
+    maxpool_1 = tf.keras.layers.MaxPool2D((5, 5), strides=1, padding="same")(x)
+    maxpool_2 = tf.keras.layers.MaxPool2D((9, 9), strides=1, padding="same")(x)
+    maxpool_3 = tf.keras.layers.MaxPool2D((13, 13), strides=1, padding="same")(x)
 
-    spp = tf.keras.layers.Concatenate()([maxpool_3, maxpool_2, maxpool_1, x1])
+    spp = tf.keras.layers.Concatenate()([maxpool_3, maxpool_2, maxpool_1, x])
 
     x = conv_bn_leaky(spp, filters=512, kernel_size=1, strides=1)
     x = conv_bn_leaky(x, filters=1024, kernel_size=3, strides=1)
@@ -81,9 +82,11 @@ def neck(input_shapes):
     x = conv_bn_leaky(x, filters=256, kernel_size=3, strides=1)
     output_3 = conv_bn_leaky(x, filters=128, kernel_size=1, strides=1)
 
-    return tf.keras.Model([input_1, input_2, input_3], [output_3, output_2, output_1])
+    return tf.keras.Model(
+        [input_1, input_2, input_3], [output_1, output_2, output_3], name="YOLOv4_neck"
+    )
 
 
 if __name__ == "__main__":
-    model = neck([(13, 13, 1024), (26, 26, 512), (52, 52, 256)])
+    model = yolov4_neck([(13, 13, 1024), (26, 26, 512), (52, 52, 256)])
     model.summary()
