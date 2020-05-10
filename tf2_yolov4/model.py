@@ -32,9 +32,11 @@ class YOLOv4(tf.keras.Model):
 
 
 if __name__ == "__main__":
-    yolov4_anchors = [np.array([(12, 16), (19, 36), (40, 28)], np.float32) / 416,
-                      np.array([(36, 75), (76, 55), (72, 146)], np.float32) / 416,
-                      np.array([(142, 110), (192, 243), (459, 401)], np.float32) / 416]
+    yolov4_anchors = [
+        np.array([(142, 110), (192, 243), (459, 401)], np.float32) / 416,
+        np.array([(36, 75), (76, 55), (72, 146)], np.float32) / 416,
+        np.array([(12, 16), (19, 36), (40, 28)], np.float32) / 416
+    ]
 
     model = YOLOv4(input_shape=(416, 416, 3), anchors=yolov4_anchors, num_classes=80)
     outputs = model.predict(tf.random.uniform((16, 416, 416, 3)))

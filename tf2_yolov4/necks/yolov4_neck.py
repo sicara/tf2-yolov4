@@ -81,7 +81,7 @@ def YOLOv4_neck(input_shapes):
     x = conv_bn_leaky(x, filters=256, kernel_size=3, strides=1)
     output_3 = conv_bn_leaky(x, filters=128, kernel_size=1, strides=1)
 
-    return tf.keras.Model([input_1, input_2, input_3], [output_3, output_2, output_1])
+    return tf.keras.Model([input_1, input_2, input_3], [output_1, output_2, output_3])
 
 
 if __name__ == "__main__":
