@@ -26,7 +26,11 @@ class YOLOv4(tf.keras.Model):
         super(YOLOv4, self).__init__(name="YOLOv4")
         self.backbone = csp_darknet53(input_shape)
         self.neck = yolov4_neck(input_shapes=self.backbone.output_shape)
-        self.head = yolov3_head(input_shapes=self.neck.output_shape, anchors=anchors, num_classes=num_classes)
+        self.head = yolov3_head(
+            input_shapes=self.neck.output_shape,
+            anchors=anchors,
+            num_classes=num_classes,
+        )
 
     def call(self, inputs, training=None, mask=None):
         """
@@ -45,7 +49,7 @@ if __name__ == "__main__":
     yolov4_anchors = [
         np.array([(142, 110), (192, 243), (459, 401)], np.float32) / 416,
         np.array([(36, 75), (76, 55), (72, 146)], np.float32) / 416,
-        np.array([(12, 16), (19, 36), (40, 28)], np.float32) / 416
+        np.array([(12, 16), (19, 36), (40, 28)], np.float32) / 416,
     ]
 
     model = YOLOv4(input_shape=(416, 416, 3), anchors=yolov4_anchors, num_classes=80)
