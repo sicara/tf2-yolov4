@@ -4,11 +4,17 @@ import tensorflow as tf
 
 def YOLOv3_head(input_shapes, anchors, num_classes):
     """
-    Implements the neck of YOLOv4, which is the one of YOLOv3
+    Implements the head of YOLOv4, which is YOLOv3 head
 
     Args:
-        input_shapes (List[Tuple[int]]): List of 3 tuples, which are the output shapes of the backbone.
-            For CSPDarknet53, those are: [(13, 13, 1024), (26, 26, 512), (52, 52, 256)] for a (416, 416) input.
+        input_shapes (List[Tuple[int]]): List of 3 tuples, which are the output shapes of the neck.
+            For CSPDarknet53+YOLOv4_neck, those are: [(13, 13, 512), (26, 26, 256) (52, 52, 128)] for a (416,416) input.
+            None dimensions are ignored
+        anchors (List[numpy.array[int, 2]]): List of 3 numpy arrays which contain the anchors dimensions used for
+        each stage.
+            The first and second columns of the numpy arrays contain respectively the height and the width of the
+            anchors.
+        num_classes (int): Number of classes.
 
     Returns:
         tf.keras.Model: Head model
@@ -21,7 +27,7 @@ def YOLOv3_head(input_shapes, anchors, num_classes):
     y2 = conv_classes_anchors(input_2, num_anchors_stage=len(anchors[1]), num_classes=num_classes)
     y3 = conv_classes_anchors(input_3, num_anchors_stage=len(anchors[2]), num_classes=num_classes)
 
-    return tf.keras.Model([input_1, input_2, input_3], [y1, y2, y3])
+    return tf.keras.Model([input_1, input_2, input_3], [y1, y2, y3], name="YOLOv3_head")
 
 
 def conv_classes_anchors(inputs, num_anchors_stage, num_classes):
