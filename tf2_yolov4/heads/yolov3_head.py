@@ -41,6 +41,7 @@ def yolov3_head(input_shapes, anchors, num_classes):
 def conv_classes_anchors(inputs, num_anchors_stage, num_classes):
     """
     Applies Conv2D based on the number of anchors and classifications classes, then reshape the Tensor.
+    TODO:  doubleCheck use_bias=True: is False in yolov3_tf2, is not specified in yolov4.cfg and True in pytorch yolov4.
 
     Args:
         inputs (tf.Tensor): 4D (N,H,W,C) input tensor
@@ -57,8 +58,7 @@ def conv_classes_anchors(inputs, num_anchors_stage, num_classes):
         kernel_size=1,
         strides=1,
         padding="same",
-        use_bias=True
-        # use_bias To doubleCheck. is false in yolov3 tf2, is not specified in yolov4.cfg and true in pytorch yolov4
+        use_bias=True,
     )(inputs)
     x = tf.keras.layers.Reshape(
         (x.shape[1], x.shape[2], num_anchors_stage, num_classes + 5)
