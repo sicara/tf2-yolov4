@@ -1,8 +1,8 @@
 install-dev:
-	deactivate && virtualenv .venv -p python3 && . .venv/bin/activate && pip install -r requirements-dev.txt && pre-commit install
+	virtualenv .venv -p python3 && . .venv/bin/activate && pip install -r requirements-dev.txt && pre-commit install
 
 install:
-	deactivate && virtualenv .venv -p python3 && . .venv/bin/activate && pip install -r requirements.txt
+	virtualenv .venv -p python3 && . .venv/bin/activate && pip install -r requirements.txt
 
 lint:
 	pylint tf2_yolov4 && black tf2_yolov4 --check
