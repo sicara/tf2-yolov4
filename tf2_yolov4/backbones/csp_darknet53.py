@@ -15,7 +15,7 @@ def conv_bn_mish(inputs, filters, kernel_size, strides, padding="same"):
         padding (str): Type of padding used in the convolution
 
     Returns:
-        tf.Tensor: 4D (N,H,W,C) output tensor
+        tf.Tensor: 4D (N,H/strides,W/strides,filters) output tensor
     """
     x = tf.keras.layers.Conv2D(
         filters=filters,
