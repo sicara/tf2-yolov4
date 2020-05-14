@@ -30,18 +30,18 @@ def conv_bn_mish(inputs, filters, kernel_size, strides, padding="same"):
     return x
 
 
-def residual_block(inputs, filters, num_blocks):
+def residual_block(inputs, num_blocks):
     """
     Applies several residual connections.
 
     Args:
         inputs (tf.Tensor): 4D (N,H,W,C) input tensor
-        filters (int): Number of convolutional filters
         num_blocks (int): Number of residual blocks
 
     Returns:
         tf.Tensor: 4D (N,H,W,C) output Tensor
     """
+    _, _, _, filters = inputs.shape
     x = inputs
     for _ in range(num_blocks):
         block_inputs = x
@@ -73,7 +73,7 @@ def csp_block(inputs, filters, num_blocks):
     route = conv_bn_mish(x, filters=half_filters, kernel_size=1, strides=1)
     x = conv_bn_mish(x, filters=half_filters, kernel_size=1, strides=1)
 
-    x = residual_block(x, filters=filters // 2, num_blocks=num_blocks)
+    x = residual_block(x, num_blocks=num_blocks)
     x = conv_bn_mish(x, filters=half_filters, kernel_size=1, strides=1)
     x = tf.keras.layers.Concatenate()([x, route])
 
