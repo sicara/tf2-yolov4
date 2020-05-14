@@ -65,7 +65,7 @@ def csp_block(inputs, filters, num_blocks):
         num_blocks (int): Number of residual blocks to apply
 
     Returns:
-        tf.Tensor: 4D (N,H,W,C) output tensor
+        tf.Tensor: 4D (N,H/2,W/2,filters) output tensor
     """
     half_filters = filters // 2
 
