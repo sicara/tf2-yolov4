@@ -39,4 +39,4 @@ def yolov4(cspdarknet53_416, yolov4_neck_416, yolov3_head_416, session_mocker):
     session_mocker.patch("tf2_yolov4.model.yolov4_neck").return_value = yolov4_neck_416
     session_mocker.patch("tf2_yolov4.model.yolov3_head").return_value = yolov3_head_416
 
-    return YOLOv4(input_shape=None, anchors=None, num_classes=0)
+    return YOLOv4(input_shape=(416, 416, 3), anchors=None, num_classes=0)
