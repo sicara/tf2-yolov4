@@ -7,15 +7,26 @@
 
 ## Requirements:
 - MacOs >= 10.15 since tensorflow-addons is not available for older release of MacOs
-- Python >= 3.5 and < 3.8 since tensorflow-addons is not available for every python distribution
+- Python >= 3.6 and < 3.8 since tensorflow-addons is not available for every python distribution
+
+## COCO Weights
+
+To load COCO weights into this implementation, you have to:
+
+- get the weights (yolov4.weights) from [AlexeyAB/darknet](https://www.github.com/AlexeyAB/darknet)
+- run `python tools/weights_convert.py`
+
+TF weights should be saved as `yolov4.h5`.
 
 ## Work in Progress
 
 - [ ] Inference
     - [x] CSPDarknet53 backbone with Mish activations
     - [x] SPP Neck
-    - [ ] YOLOv3 Head
-    - [ ] Load Darknet Weights
+    - [x] YOLOv3 Head
+    - [x] Load Darknet Weights
+    - [ ] Image loading and preprocessing
+    - [ ] YOLOv3 box postprocessing
 - [ ] Training
     - [ ] Training loop with YOLOv3 loss
     - [ ] CIoU loss
