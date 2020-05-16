@@ -1,32 +1,7 @@
 """Implements the neck of YOLOv4, including the SPP and the modified PAN"""
 import tensorflow as tf
 
-
-def conv_bn_leaky(inputs, filters, kernel_size, strides, padding="same"):
-    """
-    Applies successively Conv2D -> BN -> LeakyReLU
-
-    Args:
-        inputs (tf.Tensor): 4D (N,H,W,C) input tensor
-        filters (int): Number of convolutional filters
-        kernel_size (int): Size of the convolutional kernel
-        strides (int): Strides used for the convolution
-        padding (str): Type of padding used in the convolution
-
-    Returns:
-        tf.Tensor: 4D (N,H,W,C) output tensor
-    """
-    x = tf.keras.layers.Conv2D(
-        filters=filters,
-        kernel_size=kernel_size,
-        strides=strides,
-        padding=padding,
-        use_bias=False,
-    )(inputs)
-    x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.LeakyReLU()(x)
-
-    return x
+from tf2_yolov4.layers import conv_bn_leaky
 
 
 def yolov4_neck(input_shapes):

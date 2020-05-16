@@ -2,6 +2,7 @@
 import tensorflow as tf
 
 from tf2_yolov4.config.anchors import YOLOv4Config
+from tf2_yolov4.layers import conv_bn_leaky
 
 
 def yolov3_head(input_shapes, anchors, num_classes):
@@ -23,14 +24,33 @@ def yolov3_head(input_shapes, anchors, num_classes):
     input_2 = tf.keras.Input(shape=filter(None, input_shapes[1]))
     input_3 = tf.keras.Input(shape=filter(None, input_shapes[2]))
 
-    output_1 = conv_classes_anchors(
-        input_1, num_anchors_stage=len(anchors[0]), num_classes=num_classes
-    )
-    output_2 = conv_classes_anchors(
-        input_2, num_anchors_stage=len(anchors[1]), num_classes=num_classes
-    )
+    x = conv_bn_leaky(input_3, filters=256, kernel_size=3, strides=1)
     output_3 = conv_classes_anchors(
-        input_3, num_anchors_stage=len(anchors[2]), num_classes=num_classes
+        x, num_anchors_stage=len(anchors[0]), num_classes=num_classes
+    )
+
+    x = conv_bn_leaky(input_3, filters=256, kernel_size=3, strides=2)
+    x = tf.keras.layers.Concatenate()([x, input_2])
+    x = conv_bn_leaky(x, filters=256, kernel_size=1, strides=1)
+    x = conv_bn_leaky(x, filters=512, kernel_size=3, strides=1)
+    x = conv_bn_leaky(x, filters=256, kernel_size=1, strides=1)
+    x = conv_bn_leaky(x, filters=512, kernel_size=3, strides=1)
+    connection = conv_bn_leaky(x, filters=256, kernel_size=1, strides=1)
+    x = conv_bn_leaky(connection, filters=512, kernel_size=3, strides=1)
+    output_2 = conv_classes_anchors(
+        x, num_anchors_stage=len(anchors[1]), num_classes=num_classes
+    )
+
+    x = conv_bn_leaky(connection, filters=512, kernel_size=3, strides=2)
+    x = tf.keras.layers.Concatenate()([x, input_1])
+    x = conv_bn_leaky(x, filters=512, kernel_size=1, strides=1)
+    x = conv_bn_leaky(x, filters=1024, kernel_size=3, strides=1)
+    x = conv_bn_leaky(x, filters=512, kernel_size=1, strides=1)
+    x = conv_bn_leaky(x, filters=1024, kernel_size=3, strides=1)
+    x = conv_bn_leaky(x, filters=512, kernel_size=1, strides=1)
+    x = conv_bn_leaky(x, filters=1024, kernel_size=3, strides=1)
+    output_1 = conv_classes_anchors(
+        x, num_anchors_stage=len(anchors[2]), num_classes=num_classes
     )
 
     return tf.keras.Model(
