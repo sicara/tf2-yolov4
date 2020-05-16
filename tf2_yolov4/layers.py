@@ -2,6 +2,7 @@
 import tensorflow as tf
 import tensorflow_addons as tfa
 
+
 def conv_bn_leaky(inputs, filters, kernel_size, strides, padding="same"):
     """
     Applies successively Conv2D -> BN -> LeakyReLU

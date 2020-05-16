@@ -48,12 +48,12 @@ class YOLOv4(tf.keras.Model):
 if __name__ == "__main__":
 
     model = YOLOv4(
-        input_shape=(416, 416, 3),
+        input_shape=(608, 608, 3),
         anchors=YOLOv4Config.get_yolov4_anchors(),
         num_classes=80,
     )
 
-    outputs = model.predict(tf.random.uniform((16, 416, 416, 3)))
+    outputs = model.predict(tf.random.uniform((16, 608, 608, 3)), steps=1)
     model.summary()
     for output in outputs:
         print(output.shape)
