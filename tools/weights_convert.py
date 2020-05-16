@@ -11,9 +11,7 @@ from tf2_yolov4.config.anchors import YOLOv4Config
 from tf2_yolov4.model import YOLOv4
 
 
-DARKNET_WEIGHTS_PATH = Path("..") / "yolov4.weights"
-DARKNET_CONFIG_PATH = Path("..") / "yolov4.cfg"
-
+DARKNET_WEIGHTS_PATH = Path(".") / "yolov4.weights"
 
 model = YOLOv4((416, 416, 3), YOLOv4Config.get_yolov4_anchors(), num_classes=80)
 model.predict(np.random.random((1, 416, 416, 3)))
