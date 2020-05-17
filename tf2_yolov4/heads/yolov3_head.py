@@ -79,21 +79,21 @@ def yolov3_head(
         )
 
     boxes_1 = tf.keras.layers.Lambda(
-        lambda x: yolov3_boxes_regression(x, anchors[0], num_classes),
+        lambda x_input: yolov3_boxes_regression(x_input, anchors[0]),
         name="yolov3_boxes_regression_1",
     )(output_1)
     boxes_2 = tf.keras.layers.Lambda(
-        lambda x: yolov3_boxes_regression(x, anchors[1], num_classes),
+        lambda x_input: yolov3_boxes_regression(x_input, anchors[1]),
         name="yolov3_boxes_regression_2",
     )(output_2)
     boxes_3 = tf.keras.layers.Lambda(
-        lambda x: yolov3_boxes_regression(x, anchors[2], num_classes),
+        lambda x_input: yolov3_boxes_regression(x_input, anchors[2]),
         name="yolov3_boxes_regression_3",
     )(output_3)
 
     output = tf.keras.layers.Lambda(
-        lambda x: yolo_nms(
-            x,
+        lambda x_input: yolo_nms(
+            x_input,
             yolo_max_boxes=yolo_max_boxes,
             yolo_iou_threshold=yolo_iou_threshold,
             yolo_score_threshold=yolo_score_threshold,
@@ -132,11 +132,25 @@ def conv_classes_anchors(inputs, num_anchors_stage, num_classes):
     return x
 
 
-def yolov3_boxes_regression(features, anchors_per_stage, num_classes):
-    # pred: (batch_size, grid_x, grid_y, anchors, (x, y, w, h, obj, ...classes))
-    grid_size_x, grid_size_y = features.shape[1], features.shape[2]
+def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
+    """
+    Applies the yolov4 box regression algorithm on the output of a stage.
+    Args:
+        feats_per_stage (tf.Tensor): 5D (N,grid_x,grid_y,num_anchors_per_stage,4+1+num_classes). The last dimension
+            consists in (x, y, w, h, obj, ...classes)
+        anchors_per_stage (int): Maximum number of boxes predicted on each image (across all anchors/stages)
+    Returns:
+        List[tf.Tensor]: 4 Tensors respectively describing
+        bbox (N,grid_x,grid_y,num_anchors,4),
+        objectness (N,grid_x,grid_y,num_anchors,1),
+        class_probs (N,grid_x,grid_y,num_anchors,num_classes),
+        pred_box (N,grid_x,grid_y,num_anchors,4) only used for computing YOLO loss during training.
+    """
+    grid_size_x, grid_size_y = feats_per_stage.shape[1], feats_per_stage.shape[2]
+    num_classes = feats_per_stage.shape[-1] - 5  # th.shape[-1] = 4+1+num_classes
+
     box_xy, box_wh, objectness, class_probs = tf.split(
-        features, (2, 2, 1, num_classes), axis=-1
+        feats_per_stage, (2, 2, 1, num_classes), axis=-1
     )
 
     box_xy = tf.sigmoid(box_xy)
@@ -159,43 +173,44 @@ def yolov3_boxes_regression(features, anchors_per_stage, num_classes):
     return bbox, objectness, class_probs, pred_box
 
 
-def yolo_nms(pred, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshold):
+def yolo_nms(yolo_feats, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshold):
     """
-
-
+    Applies the non max suppression to YOLO features and returns predicted boxes
     Args:
-        pred (List[Tuple[tf.Tensor]]): For each output stage, returns a 3-tuple of 5D tensors corresponding to
-            bbox (N,grid_x,grid_y,anchor,4),
-            objectness (N,grid_x,grid_y,anchor,4),
-            class_probs (N,grid_x,grid_y,anchor,num_classes),
+        yolo_feats (List[Tuple[tf.Tensor]]): For each output stage, is a 3-tuple of 5D tensors corresponding to
+            bbox (N,grid_x,grid_y,num_anchors,4),
+            objectness (N,grid_x,grid_y,num_anchors,4),
+            class_probs (N,grid_x,grid_y,num_anchors,num_classes),
         yolo_max_boxes (int): Maximum number of boxes predicted on each image (across all anchors/stages)
         yolo_iou_threshold (float between 0. and 1.): IOU threshold defining whether close boxes will be merged
             during non max regression.
         yolo_score_threshold (float between 0. and 1.): Boxes with score lower than this threshold will be filtered
             out during non max regression.
+    Returns:
+        List[tf.Tensor]: 4 Tensors(N,yolo_max_boxes) respectively describing boxes, scores, classes, valid_detections
     """
     bbox_per_stage, objectness_per_stage, class_probs_per_stage = [], [], []
 
-    for stage_pred in pred:
+    for stage_feats in yolo_feats:
         num_boxes = (
-            stage_pred[0].shape[1] * stage_pred[0].shape[2] * stage_pred[0].shape[3]
+            stage_feats[0].shape[1] * stage_feats[0].shape[2] * stage_feats[0].shape[3]
         )  # num_anchors * grid_x * grid_y
         bbox_per_stage.append(
             tf.reshape(
-                stage_pred[0],
-                (tf.shape(stage_pred[0])[0], num_boxes, stage_pred[0].shape[-1]),
+                stage_feats[0],
+                (tf.shape(stage_feats[0])[0], num_boxes, stage_feats[0].shape[-1]),
             )
         )  # [None,num_boxes,4]
         objectness_per_stage.append(
             tf.reshape(
-                stage_pred[1],
-                (tf.shape(stage_pred[1])[0], num_boxes, stage_pred[1].shape[-1]),
+                stage_feats[1],
+                (tf.shape(stage_feats[1])[0], num_boxes, stage_feats[1].shape[-1]),
             )
         )  # [None,num_boxes,1]
         class_probs_per_stage.append(
             tf.reshape(
-                stage_pred[2],
-                (tf.shape(stage_pred[2])[0], num_boxes, stage_pred[2].shape[-1]),
+                stage_feats[2],
+                (tf.shape(stage_feats[2])[0], num_boxes, stage_feats[2].shape[-1]),
             )
         )  # [None,num_boxes,num_classes]
 
@@ -203,10 +218,9 @@ def yolo_nms(pred, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshold):
     objectness = tf.concat(objectness_per_stage, axis=1)
     class_probs = tf.concat(class_probs_per_stage, axis=1)
 
-    scores = objectness * class_probs
     boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
         boxes=tf.expand_dims(bbox, axis=2),
-        scores=scores,
+        scores=objectness * class_probs,
         max_output_size_per_class=yolo_max_boxes,
         max_total_size=yolo_max_boxes,
         iou_threshold=yolo_iou_threshold,
