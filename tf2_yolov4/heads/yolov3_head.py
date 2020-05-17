@@ -101,7 +101,7 @@ def yolov3_head(
         name="yolov4_nms",
     )([boxes_1[:3], boxes_2[:3], boxes_3[:3]])
 
-    return tf.keras.Model([input_1, input_2, input_3], output, name="YOLOv4_head")
+    return tf.keras.Model([input_1, input_2, input_3], output, name="YOLOv3_head")
 
 
 def conv_classes_anchors(inputs, num_anchors_stage, num_classes):
