@@ -1,11 +1,23 @@
-"""Implements YOLOv3 head, which is used in YOLOv4"""
+"""
+Implements YOLOv3 head, which is used in YOLOv4
+
+Implementation mainly inspired by from https://github.com/zzh8829/yolov3-tf2
+"""
 import tensorflow as tf
 
 from tf2_yolov4.config.anchors import YOLOv4Config
 from tf2_yolov4.layers import conv_bn_leaky
 
 
-def yolov3_head(input_shapes, anchors, num_classes, predict_boxes):
+def yolov3_head(
+    input_shapes,
+    anchors,
+    num_classes,
+    predict_boxes,
+    yolo_max_boxes,
+    yolo_iou_threshold,
+    yolo_score_threshold,
+):
     """
     Returns the YOLOv3 head, which is used in YOLOv4
 
@@ -18,7 +30,11 @@ def yolov3_head(input_shapes, anchors, num_classes, predict_boxes):
         num_classes (int): Number of classes.
         predict_boxes (boolean): If True, will output boxes computed through YOLO regression and NMS, and YOLO features
             otherwise. In most case, set it True for inference, and False for training.
-
+        yolo_max_boxes (int): Maximum number of boxes predicted on each image (across all anchors/stages)
+        yolo_iou_threshold (float between 0. and 1.): IOU threshold defining whether close boxes will be merged
+            during non max regression.
+        yolo_score_threshold (float between 0. and 1.): Boxes with score lower than this threshold will be filtered
+            out during non max regression.
     Returns:
         tf.keras.Model: Head model
     """
@@ -75,9 +91,15 @@ def yolov3_head(input_shapes, anchors, num_classes, predict_boxes):
         name="yolov3_boxes_regression_3",
     )(output_3)
 
-    output = tf.keras.layers.Lambda(lambda x: yolo_nms(x), name="yolov4_nms")(
-        [boxes_1[:3], boxes_2[:3], boxes_3[:3]]
-    )
+    output = tf.keras.layers.Lambda(
+        lambda x: yolo_nms(
+            x,
+            yolo_max_boxes=yolo_max_boxes,
+            yolo_iou_threshold=yolo_iou_threshold,
+            yolo_score_threshold=yolo_score_threshold,
+        ),
+        name="yolov4_nms",
+    )([boxes_1[:3], boxes_2[:3], boxes_3[:3]])
 
     return tf.keras.Model([input_1, input_2, input_3], output, name="YOLOv4_head")
 
@@ -125,7 +147,6 @@ def yolov3_boxes_regression(features, anchors_per_stage, num_classes):
     grid = tf.meshgrid(tf.range(grid_size_x), tf.range(grid_size_y), indexing="ij")
     grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)  # [gx, gy, 1, 2]
 
-    # TODO : Formula KO
     box_xy = (box_xy + tf.cast(grid, tf.float32)) / tf.constant(
         [grid_size_x, grid_size_y], dtype=tf.float32
     )
@@ -138,8 +159,21 @@ def yolov3_boxes_regression(features, anchors_per_stage, num_classes):
     return bbox, objectness, class_probs, pred_box
 
 
-def yolo_nms(pred):
-    # boxes, objectness, classes
+def yolo_nms(pred, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshold):
+    """
+
+
+    Args:
+        pred (List[Tuple[tf.Tensor]]): For each output stage, returns a 3-tuple of 5D tensors corresponding to
+            bbox (N,grid_x,grid_y,anchor,4),
+            objectness (N,grid_x,grid_y,anchor,4),
+            class_probs (N,grid_x,grid_y,anchor,num_classes),
+        yolo_max_boxes (int): Maximum number of boxes predicted on each image (across all anchors/stages)
+        yolo_iou_threshold (float between 0. and 1.): IOU threshold defining whether close boxes will be merged
+            during non max regression.
+        yolo_score_threshold (float between 0. and 1.): Boxes with score lower than this threshold will be filtered
+            out during non max regression.
+    """
     bbox_per_stage, objectness_per_stage, class_probs_per_stage = [], [], []
 
     for stage_pred in pred:
@@ -173,10 +207,10 @@ def yolo_nms(pred):
     boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
         boxes=tf.expand_dims(bbox, axis=2),
         scores=scores,
-        max_output_size_per_class=10,
-        max_total_size=100,
-        iou_threshold=0.5,
-        score_threshold=0.8,
+        max_output_size_per_class=yolo_max_boxes,
+        max_total_size=yolo_max_boxes,
+        iou_threshold=yolo_iou_threshold,
+        score_threshold=yolo_score_threshold,
     )
 
     return [boxes, scores, classes, valid_detections]
@@ -189,5 +223,8 @@ if __name__ == "__main__":
         anchors=YOLOv4Config.get_yolov3_anchors(),
         num_classes=80,
         predict_boxes=False,
+        yolo_max_boxes=50,
+        yolo_iou_threshold=0.5,
+        yolo_score_threshold=0.8,
     )
     model.summary()
