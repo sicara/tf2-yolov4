@@ -1,8 +1,7 @@
 import pytest
 
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
-from tf2_yolov4.config.anchors import YOLOv4Config
-from tf2_yolov4.heads.yolov3_head import yolov3_head
+from tf2_yolov4.heads.yolov3_head import YOLOV4_ANCHORS, yolov3_head
 from tf2_yolov4.model import YOLOv4
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
 
@@ -22,10 +21,9 @@ def yolov4_neck_416():
 def yolov3_head_416_training(num_classes, yolo_max_boxes):
     input_shapes = [(13, 13, 512), (26, 26, 256), (52, 52, 128)]
 
-    anchors = YOLOv4Config.get_yolov4_anchors()
     return yolov3_head(
         input_shapes,
-        anchors=anchors,
+        anchors=YOLOV4_ANCHORS,
         num_classes=num_classes,
         training=True,
         yolo_max_boxes=yolo_max_boxes,
@@ -38,10 +36,9 @@ def yolov3_head_416_training(num_classes, yolo_max_boxes):
 def yolov3_head_416_inference(num_classes, yolo_max_boxes):
     input_shapes = [(13, 13, 512), (26, 26, 256), (52, 52, 128)]
 
-    anchors = YOLOv4Config.get_yolov4_anchors()
     return yolov3_head(
         input_shapes,
-        anchors=anchors,
+        anchors=YOLOV4_ANCHORS,
         num_classes=num_classes,
         training=False,
         yolo_max_boxes=yolo_max_boxes,

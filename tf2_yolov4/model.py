@@ -4,8 +4,7 @@ Model class for YOLOv4
 import tensorflow as tf
 
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
-from tf2_yolov4.config.anchors import YOLOv4Config
-from tf2_yolov4.heads.yolov3_head import yolov3_head
+from tf2_yolov4.heads.yolov3_head import YOLOV4_ANCHORS, yolov3_head
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
 
 
@@ -56,11 +55,7 @@ def YOLOv4(
 
 
 if __name__ == "__main__":
-    model = YOLOv4(
-        input_shape=(608, 416, 3),
-        anchors=YOLOv4Config.get_yolov4_anchors(),
-        num_classes=80,
-    )
+    model = YOLOv4(input_shape=(608, 416, 3), anchors=YOLOV4_ANCHORS, num_classes=80)
 
     outputs = model.predict(tf.random.uniform((16, 608, 416, 3)), steps=1)
     model.summary()

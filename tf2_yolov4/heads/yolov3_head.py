@@ -3,9 +3,9 @@ Implements YOLOv3 head, which is used in YOLOv4
 
 Implementation mainly inspired by from https://github.com/zzh8829/yolov3-tf2
 """
+import numpy as np
 import tensorflow as tf
 
-from tf2_yolov4.config.anchors import YOLOv4Config
 from tf2_yolov4.layers import conv_bn_leaky
 
 
@@ -228,11 +228,23 @@ def yolo_nms(yolo_feats, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshol
     return [boxes, scores, classes, valid_detections]
 
 
+YOLOV4_ANCHORS = [
+    np.array([(142, 110), (192, 243), (459, 401)], np.float32) / 416,
+    np.array([(36, 75), (76, 55), (72, 146)], np.float32) / 416,
+    np.array([(12, 16), (19, 36), (40, 28)], np.float32) / 416,
+]
+
+YOLOV3_ANCHORS = [
+    np.array([(116, 90), (156, 198), (373, 326)], np.float32) / 416,
+    np.array([(30, 61), (62, 45), (59, 119)], np.float32) / 416,
+    np.array([(10, 13), (16, 30), (33, 23)], np.float32) / 416,
+]
+
 if __name__ == "__main__":
 
     model = yolov3_head(
         [(13, 13, 1024), (26, 26, 512), (52, 52, 256)],
-        anchors=YOLOv4Config.get_yolov3_anchors(),
+        anchors=YOLOV3_ANCHORS,
         num_classes=80,
         training=True,
         yolo_max_boxes=50,
