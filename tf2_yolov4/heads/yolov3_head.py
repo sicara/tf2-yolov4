@@ -78,15 +78,15 @@ def yolov3_head(
             name="YOLOv3_head",
         )
 
-    boxes_1 = tf.keras.layers.Lambda(
+    predictions_1 = tf.keras.layers.Lambda(
         lambda x_input: yolov3_boxes_regression(x_input, anchors[0]),
         name="yolov3_boxes_regression_1",
     )(output_1)
-    boxes_2 = tf.keras.layers.Lambda(
+    predictions_2 = tf.keras.layers.Lambda(
         lambda x_input: yolov3_boxes_regression(x_input, anchors[1]),
         name="yolov3_boxes_regression_2",
     )(output_2)
-    boxes_3 = tf.keras.layers.Lambda(
+    predictions_3 = tf.keras.layers.Lambda(
         lambda x_input: yolov3_boxes_regression(x_input, anchors[2]),
         name="yolov3_boxes_regression_3",
     )(output_3)
@@ -99,7 +99,7 @@ def yolov3_head(
             yolo_score_threshold=yolo_score_threshold,
         ),
         name="yolov4_nms",
-    )([boxes_1[:3], boxes_2[:3], boxes_3[:3]])
+    )([predictions_1, predictions_2, predictions_3])
 
     return tf.keras.Model([input_1, input_2, input_3], output, name="YOLOv3_head")
 
@@ -144,7 +144,6 @@ def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
         bbox (N,grid_x,grid_y,num_anchors,4),
         objectness (N,grid_x,grid_y,num_anchors,1),
         class_probs (N,grid_x,grid_y,num_anchors,num_classes),
-        pred_box (N,grid_x,grid_y,num_anchors,4) only used for computing YOLO loss during training.
     """
     grid_size_x, grid_size_y = feats_per_stage.shape[1], feats_per_stage.shape[2]
     num_classes = feats_per_stage.shape[-1] - 5  # th.shape[-1] = 4+1+num_classes
@@ -156,7 +155,6 @@ def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
     box_xy = tf.sigmoid(box_xy)
     objectness = tf.sigmoid(objectness)
     class_probs = tf.sigmoid(class_probs)
-    pred_box = tf.concat((box_xy, box_wh), axis=-1)  # original xywh for loss
 
     grid = tf.meshgrid(tf.range(grid_size_x), tf.range(grid_size_y), indexing="ij")
     grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)  # [gx, gy, 1, 2]
@@ -170,7 +168,7 @@ def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
     box_x2y2 = box_xy + box_wh / 2
     bbox = tf.concat([box_x1y1, box_x2y2], axis=-1)
 
-    return bbox, objectness, class_probs, pred_box
+    return bbox, objectness, class_probs
 
 
 def yolo_nms(yolo_feats, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshold):
