@@ -13,7 +13,7 @@ def yolov3_head(
     input_shapes,
     anchors,
     num_classes,
-    predict_boxes,
+    training,
     yolo_max_boxes,
     yolo_iou_threshold,
     yolo_score_threshold,
@@ -28,8 +28,8 @@ def yolov3_head(
         anchors (List[numpy.array[int, 2]]): List of 3 numpy arrays containing the anchor sizes used for each stage.
             The first and second columns of the numpy arrays respectively contain the anchors height and width.
         num_classes (int): Number of classes.
-        predict_boxes (boolean): If True, will output boxes computed through YOLO regression and NMS, and YOLO features
-            otherwise. In most case, set it True for inference, and False for training.
+        training (boolean): If False, will output boxes computed through YOLO regression and NMS, and YOLO features
+            otherwise. Set it True for training, and False for inferences.
         yolo_max_boxes (int): Maximum number of boxes predicted on each image (across all anchors/stages)
         yolo_iou_threshold (float between 0. and 1.): IOU threshold defining whether close boxes will be merged
             during non max regression.
@@ -71,7 +71,7 @@ def yolov3_head(
         x, num_anchors_stage=len(anchors[2]), num_classes=num_classes
     )
 
-    if not predict_boxes:
+    if training:
         return tf.keras.Model(
             [input_1, input_2, input_3],
             [output_1, output_2, output_3],
@@ -234,7 +234,7 @@ if __name__ == "__main__":
         [(13, 13, 1024), (26, 26, 512), (52, 52, 256)],
         anchors=YOLOv4Config.get_yolov3_anchors(),
         num_classes=80,
-        predict_boxes=False,
+        training=True,
         yolo_max_boxes=50,
         yolo_iou_threshold=0.5,
         yolo_score_threshold=0.8,

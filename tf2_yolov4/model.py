@@ -13,7 +13,7 @@ def YOLOv4(
     input_shape,
     anchors,
     num_classes,
-    predict_boxes=True,
+    training=False,
     yolo_max_boxes=50,
     yolo_iou_threshold=0.5,
     yolo_score_threshold=0.8,
@@ -27,8 +27,8 @@ def YOLOv4(
             The first and second columns of the numpy arrays contain respectively the height and the width of the
             anchors.
         num_classes (int): Number of classes.
-        predict_boxes (boolean): If True, will output boxes computed through YOLO regression and NMS, and YOLO features
-            otherwise. In most case, set it True for inference, and False for training.
+        training (boolean): If False, will output boxes computed through YOLO regression and NMS, and YOLO features
+            otherwise. Set it True for training, and False for inferences.
         yolo_max_boxes (int): Maximum number of boxes predicted on each image (across all anchors/stages)
         yolo_iou_threshold (float between 0. and 1.): IOU threshold defining whether close boxes will be merged
             during non max regression.
@@ -41,7 +41,7 @@ def YOLOv4(
         input_shapes=neck.output_shape,
         anchors=anchors,
         num_classes=num_classes,
-        predict_boxes=predict_boxes,
+        training=training,
         yolo_max_boxes=yolo_max_boxes,
         yolo_iou_threshold=yolo_iou_threshold,
         yolo_score_threshold=yolo_score_threshold,
