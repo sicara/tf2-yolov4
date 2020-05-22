@@ -31,7 +31,7 @@ def conv_bn_leaky(
         use_bias=False,
     )(inputs)
     x = tf.keras.layers.BatchNormalization()(x)
-    x = tf.keras.layers.LeakyReLU()(x)
+    x = tf.keras.layers.LeakyReLU(alpha=0.1)(x)
 
     return x
 
