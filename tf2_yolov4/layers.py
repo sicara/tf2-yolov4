@@ -3,7 +3,9 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 
 
-def conv_bn_leaky(inputs, filters, kernel_size, strides, padding="same"):
+def conv_bn_leaky(
+    inputs, filters, kernel_size, strides, padding="same", zero_pad=False
+):
     """
     Applies successively Conv2D -> BN -> LeakyReLU
 
@@ -13,10 +15,14 @@ def conv_bn_leaky(inputs, filters, kernel_size, strides, padding="same"):
         kernel_size (int): Size of the convolutional kernel
         strides (int): Strides used for the convolution
         padding (str): Type of padding used in the convolution
+        zero_pad (bool): If true, will zero-pad the input
 
     Returns:
         tf.Tensor: 4D (N,H,W,C) output tensor
     """
+    if zero_pad:
+        inputs = tf.keras.layers.ZeroPadding2D(((1, 0), (1, 0)))(inputs)
+
     x = tf.keras.layers.Conv2D(
         filters=filters,
         kernel_size=kernel_size,
@@ -30,7 +36,7 @@ def conv_bn_leaky(inputs, filters, kernel_size, strides, padding="same"):
     return x
 
 
-def conv_bn_mish(inputs, filters, kernel_size, strides, padding="same"):
+def conv_bn_mish(inputs, filters, kernel_size, strides, padding="same", zero_pad=False):
     """
     Applies successively Conv2D -> BN -> Mish
 
@@ -40,10 +46,14 @@ def conv_bn_mish(inputs, filters, kernel_size, strides, padding="same"):
         kernel_size (int): Size of the convolutional kernel
         strides (int): Strides used for the convolution
         padding (str): Type of padding used in the convolution
+        zero_pad (bool): If true, will zero-pad the input
 
     Returns:
         tf.Tensor: 4D (N,H/strides,W/strides,filters) output tensor
     """
+    if zero_pad:
+        inputs = tf.keras.layers.ZeroPadding2D(((1, 0), (1, 0)))(inputs)
+
     x = tf.keras.layers.Conv2D(
         filters=filters,
         kernel_size=kernel_size,

@@ -47,7 +47,9 @@ def yolov3_head(
         x, num_anchors_stage=len(anchors[0]), num_classes=num_classes
     )
 
-    x = conv_bn_leaky(input_3, filters=256, kernel_size=3, strides=2)
+    x = conv_bn_leaky(
+        input_3, filters=256, kernel_size=3, strides=2, zero_pad=True, padding="valid"
+    )
     x = tf.keras.layers.Concatenate()([x, input_2])
     x = conv_bn_leaky(x, filters=256, kernel_size=1, strides=1)
     x = conv_bn_leaky(x, filters=512, kernel_size=3, strides=1)
@@ -59,7 +61,14 @@ def yolov3_head(
         x, num_anchors_stage=len(anchors[1]), num_classes=num_classes
     )
 
-    x = conv_bn_leaky(connection, filters=512, kernel_size=3, strides=2)
+    x = conv_bn_leaky(
+        connection,
+        filters=512,
+        kernel_size=3,
+        strides=2,
+        zero_pad=True,
+        padding="valid",
+    )
     x = tf.keras.layers.Concatenate()([x, input_1])
     x = conv_bn_leaky(x, filters=512, kernel_size=1, strides=1)
     x = conv_bn_leaky(x, filters=1024, kernel_size=3, strides=1)

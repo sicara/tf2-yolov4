@@ -43,7 +43,14 @@ def csp_block(inputs, filters, num_blocks):
     """
     half_filters = filters // 2
 
-    x = conv_bn_mish(inputs, filters=filters, kernel_size=3, strides=2)
+    x = conv_bn_mish(
+        inputs,
+        filters=filters,
+        kernel_size=3,
+        strides=2,
+        zero_pad=True,
+        padding="valid",
+    )
     route = conv_bn_mish(x, filters=half_filters, kernel_size=1, strides=1)
     x = conv_bn_mish(x, filters=half_filters, kernel_size=1, strides=1)
 
@@ -69,7 +76,9 @@ def csp_darknet53(input_shape):
 
     # This block could be expressed as a CSPBlock with modification of num_filters in the middle
     # For readability purpose, we chose to keep the CSPBlock as simple as possible and have a little redondancy
-    x = conv_bn_mish(x, filters=64, kernel_size=3, strides=2)
+    x = conv_bn_mish(
+        x, filters=64, kernel_size=3, strides=2, zero_pad=True, padding="valid"
+    )
     route = conv_bn_mish(x, filters=64, kernel_size=1, strides=1)
 
     shortcut = conv_bn_mish(x, filters=64, kernel_size=1, strides=1)
