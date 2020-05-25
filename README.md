@@ -25,8 +25,8 @@ TF weights should be saved as `yolov4.h5`.
     - [x] SPP Neck
     - [x] YOLOv3 Head
     - [x] Load Darknet Weights
-    - [ ] Image loading and preprocessing
-    - [ ] YOLOv3 box postprocessing
+    - [x] Image loading and preprocessing
+    - [x] YOLOv3 box postprocessing
 - [ ] Training
     - [ ] Training loop with YOLOv3 loss
     - [ ] CIoU loss
