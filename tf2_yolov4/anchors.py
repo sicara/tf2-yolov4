@@ -26,7 +26,7 @@ def compute_resized_anchors(anchors, input_shape):
         input_shape (Tuple[int]): Input shape of the Network
 
     Returns:
-
+        (List[numpy.array[int, 2]]): anchors resized based on the input shape of the Network.
     """
     width, height = input_shape[:2]
     return [anchor / np.array([height, width]) for anchor in anchors]
