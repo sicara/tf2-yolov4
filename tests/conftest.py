@@ -69,7 +69,7 @@ def yolov4_training(
         "tf2_yolov4.model.yolov3_head"
     ).return_value = yolov3_head_416_training
 
-    return YOLOv4(input_shape=(416, 416, 3), anchors=None, num_classes=0)
+    return YOLOv4(input_shape=(416, 416, 3), num_classes=0, anchors=None)
 
 
 @pytest.fixture(scope="session")
@@ -84,4 +84,4 @@ def yolov4_inference(
         "tf2_yolov4.model.yolov3_head"
     ).return_value = yolov3_head_416_inference
 
-    return YOLOv4(input_shape=(416, 416, 3), anchors=None, num_classes=0)
+    return YOLOv4(input_shape=(416, 416, 3), num_classes=0, anchors=None)

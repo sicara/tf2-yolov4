@@ -1,18 +1,18 @@
 """
 Model class for YOLOv4
 """
-import numpy as np
 import tensorflow as tf
 
+from tf2_yolov4.anchors import YOLOV4_ANCHORS, compute_resized_anchors
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
-from tf2_yolov4.heads.yolov3_head import YOLOV4_ANCHORS, yolov3_head
+from tf2_yolov4.heads.yolov3_head import yolov3_head
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
 
 
 def YOLOv4(
     input_shape,
-    anchors,
     num_classes,
+    anchors=YOLOV4_ANCHORS,
     training=False,
     yolo_max_boxes=50,
     yolo_iou_threshold=0.5,
@@ -36,15 +36,14 @@ def YOLOv4(
             out during non max regression.
     """
 
-    normalized_anchors = [
-        anchor / np.array([input_shape[1], input_shape[0]]) for anchor in anchors
-    ]
-
     backbone = csp_darknet53(input_shape)
+
     neck = yolov4_neck(input_shapes=backbone.output_shape)
+
+    resized_anchors = compute_resized_anchors(anchors, input_shape)
     head = yolov3_head(
         input_shapes=neck.output_shape,
-        anchors=normalized_anchors,
+        anchors=resized_anchors,
         num_classes=num_classes,
         training=training,
         yolo_max_boxes=yolo_max_boxes,
@@ -61,7 +60,12 @@ def YOLOv4(
 
 
 if __name__ == "__main__":
-    model = YOLOv4(input_shape=(608, 416, 3), anchors=YOLOV4_ANCHORS, num_classes=80)
+    input_shape = (608, 416, 3)
+    model = YOLOv4(
+        input_shape=input_shape,
+        num_classes=80,
+        anchors=compute_resized_anchors(YOLOV4_ANCHORS, input_shape),
+    )
 
     outputs = model.predict(tf.random.uniform((16, 608, 416, 3)), steps=1)
     model.summary()

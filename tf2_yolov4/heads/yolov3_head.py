@@ -3,9 +3,9 @@ Implements YOLOv3 head, which is used in YOLOv4
 
 Implementation mainly inspired by from https://github.com/zzh8829/yolov3-tf2
 """
-import numpy as np
 import tensorflow as tf
 
+from tf2_yolov4.anchors import YOLOV3_ANCHORS
 from tf2_yolov4.layers import conv_bn_leaky
 
 
@@ -147,7 +147,9 @@ def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
     Args:
         feats_per_stage (tf.Tensor): 5D (N,grid_x,grid_y,num_anchors_per_stage,4+1+num_classes). The last dimension
             consists in (x, y, w, h, obj, ...classes)
-        anchors_per_stage (int): Maximum number of boxes predicted on each image (across all anchors/stages)
+        anchors_per_stage (numpy.array[int, 2]): List of 3 numpy arrays containing the anchor used for each stage.
+            The first and second columns respectively contain the anchors height and width.
+        (int): Maximum number of boxes predicted on each image (across all anchors/stages)
     Returns:
         List[tf.Tensor]: 4 Tensors respectively describing
         bbox (N,grid_x,grid_y,num_anchors,4),
@@ -236,18 +238,6 @@ def yolo_nms(yolo_feats, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshol
 
     return [boxes, scores, classes, valid_detections]
 
-
-YOLOV4_ANCHORS = [
-    np.array([(142, 110), (192, 243), (459, 401)], np.float32),
-    np.array([(36, 75), (76, 55), (72, 146)], np.float32),
-    np.array([(12, 16), (19, 36), (40, 28)], np.float32),
-]
-
-YOLOV3_ANCHORS = [
-    np.array([(116, 90), (156, 198), (373, 326)], np.float32) / 416,
-    np.array([(30, 61), (62, 45), (59, 119)], np.float32) / 416,
-    np.array([(10, 13), (16, 30), (33, 23)], np.float32) / 416,
-]
 
 if __name__ == "__main__":
 
