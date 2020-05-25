@@ -12,7 +12,7 @@ from tf2_yolov4.necks.yolov4_neck import yolov4_neck
 def YOLOv4(
     input_shape,
     num_classes,
-    anchors=YOLOV4_ANCHORS,
+    anchors,
     training=False,
     yolo_max_boxes=50,
     yolo_iou_threshold=0.5,
@@ -35,7 +35,6 @@ def YOLOv4(
         yolo_score_threshold (float between 0. and 1.): Boxes with score lower than this threshold will be filtered
             out during non max regression.
     """
-
     backbone = csp_darknet53(input_shape)
 
     neck = yolov4_neck(input_shapes=backbone.output_shape)
@@ -60,12 +59,7 @@ def YOLOv4(
 
 
 if __name__ == "__main__":
-    input_shape = (608, 416, 3)
-    model = YOLOv4(
-        input_shape=input_shape,
-        num_classes=80,
-        anchors=compute_resized_anchors(YOLOV4_ANCHORS, input_shape),
-    )
+    model = YOLOv4(input_shape=(608, 416, 3), num_classes=80, anchors=YOLOV4_ANCHORS)
 
     outputs = model.predict(tf.random.uniform((16, 608, 416, 3)), steps=1)
     model.summary()

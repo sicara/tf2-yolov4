@@ -5,8 +5,8 @@ Implementation mainly inspired by from https://github.com/zzh8829/yolov3-tf2
 """
 import tensorflow as tf
 
-from tf2_yolov4.anchors import YOLOV3_ANCHORS
-from tf2_yolov4.layers import conv_bn_leaky
+from tf2_yolov4.anchors import YOLOV3_ANCHORS, compute_resized_anchors
+from tf2_yolov4.layers import conv_bn
 
 
 def yolov3_head(
@@ -42,40 +42,51 @@ def yolov3_head(
     input_2 = tf.keras.Input(shape=filter(None, input_shapes[1]))
     input_3 = tf.keras.Input(shape=filter(None, input_shapes[2]))
 
-    x = conv_bn_leaky(input_3, filters=256, kernel_size=3, strides=1)
+    x = conv_bn(input_3, filters=256, kernel_size=3, strides=1, activation="leaky_relu")
     output_3 = conv_classes_anchors(
         x, num_anchors_stage=len(anchors[0]), num_classes=num_classes
     )
 
-    x = conv_bn_leaky(
-        input_3, filters=256, kernel_size=3, strides=2, zero_pad=True, padding="valid"
+    x = conv_bn(
+        input_3,
+        filters=256,
+        kernel_size=3,
+        strides=2,
+        zero_pad=True,
+        padding="valid",
+        activation="leaky_relu",
     )
     x = tf.keras.layers.Concatenate()([x, input_2])
-    x = conv_bn_leaky(x, filters=256, kernel_size=1, strides=1)
-    x = conv_bn_leaky(x, filters=512, kernel_size=3, strides=1)
-    x = conv_bn_leaky(x, filters=256, kernel_size=1, strides=1)
-    x = conv_bn_leaky(x, filters=512, kernel_size=3, strides=1)
-    connection = conv_bn_leaky(x, filters=256, kernel_size=1, strides=1)
-    x = conv_bn_leaky(connection, filters=512, kernel_size=3, strides=1)
+    x = conv_bn(x, filters=256, kernel_size=1, strides=1, activation="leaky_relu")
+    x = conv_bn(x, filters=512, kernel_size=3, strides=1, activation="leaky_relu")
+    x = conv_bn(x, filters=256, kernel_size=1, strides=1, activation="leaky_relu")
+    x = conv_bn(x, filters=512, kernel_size=3, strides=1, activation="leaky_relu")
+    connection = conv_bn(
+        x, filters=256, kernel_size=1, strides=1, activation="leaky_relu"
+    )
+    x = conv_bn(
+        connection, filters=512, kernel_size=3, strides=1, activation="leaky_relu"
+    )
     output_2 = conv_classes_anchors(
         x, num_anchors_stage=len(anchors[1]), num_classes=num_classes
     )
 
-    x = conv_bn_leaky(
+    x = conv_bn(
         connection,
         filters=512,
         kernel_size=3,
         strides=2,
         zero_pad=True,
         padding="valid",
+        activation="leaky_relu",
     )
     x = tf.keras.layers.Concatenate()([x, input_1])
-    x = conv_bn_leaky(x, filters=512, kernel_size=1, strides=1)
-    x = conv_bn_leaky(x, filters=1024, kernel_size=3, strides=1)
-    x = conv_bn_leaky(x, filters=512, kernel_size=1, strides=1)
-    x = conv_bn_leaky(x, filters=1024, kernel_size=3, strides=1)
-    x = conv_bn_leaky(x, filters=512, kernel_size=1, strides=1)
-    x = conv_bn_leaky(x, filters=1024, kernel_size=3, strides=1)
+    x = conv_bn(x, filters=512, kernel_size=1, strides=1, activation="leaky_relu")
+    x = conv_bn(x, filters=1024, kernel_size=3, strides=1, activation="leaky_relu")
+    x = conv_bn(x, filters=512, kernel_size=1, strides=1, activation="leaky_relu")
+    x = conv_bn(x, filters=1024, kernel_size=3, strides=1, activation="leaky_relu")
+    x = conv_bn(x, filters=512, kernel_size=1, strides=1, activation="leaky_relu")
+    x = conv_bn(x, filters=1024, kernel_size=3, strides=1, activation="leaky_relu")
     output_1 = conv_classes_anchors(
         x, num_anchors_stage=len(anchors[2]), num_classes=num_classes
     )
@@ -243,7 +254,7 @@ if __name__ == "__main__":
 
     model = yolov3_head(
         [(13, 13, 1024), (26, 26, 512), (52, 52, 256)],
-        anchors=YOLOV3_ANCHORS,
+        anchors=compute_resized_anchors(YOLOV3_ANCHORS, (416, 416, 3)),
         num_classes=80,
         training=True,
         yolo_max_boxes=50,

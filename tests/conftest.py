@@ -1,7 +1,8 @@
 import pytest
 
+from tf2_yolov4.anchors import YOLOV4_ANCHORS
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
-from tf2_yolov4.heads.yolov3_head import YOLOV4_ANCHORS, yolov3_head
+from tf2_yolov4.heads.yolov3_head import yolov3_head
 from tf2_yolov4.model import YOLOv4
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
 
