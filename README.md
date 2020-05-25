@@ -9,24 +9,30 @@
 - MacOs >= 10.15 since tensorflow-addons is not available for older release of MacOs
 - Python >= 3.6 and < 3.8 since tensorflow-addons is not available for every python distribution
 
+## Our implementation
+
+This implementation runs (for now) inference with the original Darknet weights from [AlexeyAB](https://www.github.com/AlexeyAB/darknet).
+See the roadmap section to see what's next.
+
 ## COCO Weights
 
-To load COCO weights into this implementation, you have to:
+To load the Darknet weights trained on COCO, you have to:
 
 - get the weights (yolov4.weights) from [AlexeyAB/darknet](https://www.github.com/AlexeyAB/darknet)
 - run `python tools/weights_convert.py`
 
 TF weights should be saved as `yolov4.h5`.
 
-## Work in Progress
+## Roadmap
 
-- [ ] Inference
+- [x] Inference
     - [x] CSPDarknet53 backbone with Mish activations
     - [x] SPP Neck
     - [x] YOLOv3 Head
     - [x] Load Darknet Weights
     - [x] Image loading and preprocessing
     - [x] YOLOv3 box postprocessing
+    - [x] Handling non-square images
 - [ ] Training
     - [ ] Training loop with YOLOv3 loss
     - [ ] CIoU loss
@@ -34,3 +40,5 @@ TF weights should be saved as `yolov4.h5`.
     - [ ] Self-adversarial Training
     - [ ] Mosaic Data Augmentation
     - [ ] DropBlock
+- [ ] Enhancements
+    - [ ] Automatic download of pretrained weights (like Keras applications)
