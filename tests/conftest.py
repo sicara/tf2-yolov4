@@ -1,7 +1,8 @@
 import pytest
 
+from tf2_yolov4.anchors import YOLOV4_ANCHORS
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
-from tf2_yolov4.heads.yolov3_head import YOLOV4_ANCHORS, yolov3_head
+from tf2_yolov4.heads.yolov3_head import yolov3_head
 from tf2_yolov4.model import YOLOv4
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
 
@@ -69,7 +70,7 @@ def yolov4_training(
         "tf2_yolov4.model.yolov3_head"
     ).return_value = yolov3_head_416_training
 
-    return YOLOv4(input_shape=(416, 416, 3), anchors=None, num_classes=0)
+    return YOLOv4(input_shape=(416, 416, 3), num_classes=0, anchors=YOLOV4_ANCHORS)
 
 
 @pytest.fixture(scope="session")
@@ -84,4 +85,4 @@ def yolov4_inference(
         "tf2_yolov4.model.yolov3_head"
     ).return_value = yolov3_head_416_inference
 
-    return YOLOv4(input_shape=(416, 416, 3), anchors=None, num_classes=0)
+    return YOLOv4(input_shape=(416, 416, 3), num_classes=0, anchors=YOLOV4_ANCHORS)

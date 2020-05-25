@@ -1,7 +1,7 @@
 """Implements YOLOv4 backbone layer: CSPDarknet53"""
 import tensorflow as tf
 
-from tf2_yolov4.layers import conv_bn_mish
+from tf2_yolov4.layers import conv_bn
 
 
 def residual_block(inputs, num_blocks):
@@ -19,8 +19,8 @@ def residual_block(inputs, num_blocks):
     x = inputs
     for _ in range(num_blocks):
         block_inputs = x
-        x = conv_bn_mish(x, filters, kernel_size=1, strides=1)
-        x = conv_bn_mish(x, filters, kernel_size=3, strides=1)
+        x = conv_bn(x, filters, kernel_size=1, strides=1, activation="mish")
+        x = conv_bn(x, filters, kernel_size=3, strides=1, activation="mish")
 
         x = x + block_inputs
 
@@ -43,15 +43,25 @@ def csp_block(inputs, filters, num_blocks):
     """
     half_filters = filters // 2
 
-    x = conv_bn_mish(inputs, filters=filters, kernel_size=3, strides=2)
-    route = conv_bn_mish(x, filters=half_filters, kernel_size=1, strides=1)
-    x = conv_bn_mish(x, filters=half_filters, kernel_size=1, strides=1)
+    x = conv_bn(
+        inputs,
+        filters=filters,
+        kernel_size=3,
+        strides=2,
+        zero_pad=True,
+        padding="valid",
+        activation="mish",
+    )
+    route = conv_bn(
+        x, filters=half_filters, kernel_size=1, strides=1, activation="mish"
+    )
+    x = conv_bn(x, filters=half_filters, kernel_size=1, strides=1, activation="mish")
 
     x = residual_block(x, num_blocks=num_blocks)
-    x = conv_bn_mish(x, filters=half_filters, kernel_size=1, strides=1)
+    x = conv_bn(x, filters=half_filters, kernel_size=1, strides=1, activation="mish")
     x = tf.keras.layers.Concatenate()([x, route])
 
-    x = conv_bn_mish(x, filters=filters, kernel_size=1, strides=1)
+    x = conv_bn(x, filters=filters, kernel_size=1, strides=1, activation="mish")
 
     return x
 
@@ -65,21 +75,29 @@ def csp_darknet53(input_shape):
     inputs = tf.keras.Input(shape=input_shape)
 
     # First downsampling: L29 -> L103
-    x = conv_bn_mish(inputs, filters=32, kernel_size=3, strides=1)
+    x = conv_bn(inputs, filters=32, kernel_size=3, strides=1, activation="mish")
 
     # This block could be expressed as a CSPBlock with modification of num_filters in the middle
     # For readability purpose, we chose to keep the CSPBlock as simple as possible and have a little redondancy
-    x = conv_bn_mish(x, filters=64, kernel_size=3, strides=2)
-    route = conv_bn_mish(x, filters=64, kernel_size=1, strides=1)
+    x = conv_bn(
+        x,
+        filters=64,
+        kernel_size=3,
+        strides=2,
+        zero_pad=True,
+        padding="valid",
+        activation="mish",
+    )
+    route = conv_bn(x, filters=64, kernel_size=1, strides=1, activation="mish")
 
-    shortcut = conv_bn_mish(x, filters=64, kernel_size=1, strides=1)
-    x = conv_bn_mish(shortcut, filters=32, kernel_size=1, strides=1)
-    x = conv_bn_mish(x, filters=64, kernel_size=3, strides=1)
+    shortcut = conv_bn(x, filters=64, kernel_size=1, strides=1, activation="mish")
+    x = conv_bn(shortcut, filters=32, kernel_size=1, strides=1, activation="mish")
+    x = conv_bn(x, filters=64, kernel_size=3, strides=1, activation="mish")
 
     x = x + shortcut
-    x = conv_bn_mish(x, filters=64, kernel_size=1, strides=1)
+    x = conv_bn(x, filters=64, kernel_size=1, strides=1, activation="mish")
     x = tf.keras.layers.Concatenate()([x, route])
-    x = conv_bn_mish(x, filters=64, kernel_size=1, strides=1)
+    x = conv_bn(x, filters=64, kernel_size=1, strides=1, activation="mish")
 
     # Second downsampling: L105 -> L191
     x = csp_block(x, filters=128, num_blocks=2)
