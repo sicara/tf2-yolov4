@@ -27,9 +27,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-3.7-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+          key: ${{ runner.os }}-3.7-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}-2.2.0
       - name: Install dependencies
-        run: pip install -r requirements-dev.txt && pip install tensorflow==2.1.0
+        run: pip install -r requirements-dev.txt && pip install tensorflow==2.2.0
       - name: Lint with pylint and black
         run: make lint
 
@@ -53,8 +53,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}-2.2.0
       - name: Install dependencies
-        run: pip install -r requirements-dev.txt && pip install tensorflow==2.1.0
+        run: pip install -r requirements-dev.txt && pip install tensorflow==2.2.0
       - name: Test with pytest
         run: make test
