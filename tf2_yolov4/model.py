@@ -1,6 +1,7 @@
 """
 Model class for YOLOv4
 """
+import numpy as np
 import tensorflow as tf
 
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
@@ -15,7 +16,7 @@ def YOLOv4(
     training=False,
     yolo_max_boxes=50,
     yolo_iou_threshold=0.5,
-    yolo_score_threshold=0.8,
+    yolo_score_threshold=0.5,
 ):
     """
     YOLOv4 Model
@@ -34,11 +35,16 @@ def YOLOv4(
         yolo_score_threshold (float between 0. and 1.): Boxes with score lower than this threshold will be filtered
             out during non max regression.
     """
+
+    normalized_anchors = [
+        anchor / np.array([input_shape[1], input_shape[0]]) for anchor in anchors
+    ]
+
     backbone = csp_darknet53(input_shape)
     neck = yolov4_neck(input_shapes=backbone.output_shape)
     head = yolov3_head(
         input_shapes=neck.output_shape,
-        anchors=anchors,
+        anchors=normalized_anchors,
         num_classes=num_classes,
         training=training,
         yolo_max_boxes=yolo_max_boxes,

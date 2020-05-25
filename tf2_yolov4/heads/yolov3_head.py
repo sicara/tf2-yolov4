@@ -165,11 +165,11 @@ def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
     objectness = tf.sigmoid(objectness)
     class_probs = tf.sigmoid(class_probs)
 
-    grid = tf.meshgrid(tf.range(grid_size_x), tf.range(grid_size_y), indexing="ij")
-    grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)  # [gx, gy, 1, 2]
+    grid = tf.meshgrid(tf.range(grid_size_y), tf.range(grid_size_x))
+    grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)  # [gy, gx, 1, 2]
 
     box_xy = (box_xy + tf.cast(grid, tf.float32)) / tf.constant(
-        [grid_size_x, grid_size_y], dtype=tf.float32
+        [grid_size_y, grid_size_x], dtype=tf.float32
     )
     box_wh = tf.exp(box_wh) * anchors_per_stage
 
@@ -238,9 +238,9 @@ def yolo_nms(yolo_feats, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshol
 
 
 YOLOV4_ANCHORS = [
-    np.array([(142, 110), (192, 243), (459, 401)], np.float32) / 416,
-    np.array([(36, 75), (76, 55), (72, 146)], np.float32) / 416,
-    np.array([(12, 16), (19, 36), (40, 28)], np.float32) / 416,
+    np.array([(142, 110), (192, 243), (459, 401)], np.float32),
+    np.array([(36, 75), (76, 55), (72, 146)], np.float32),
+    np.array([(12, 16), (19, 36), (40, 28)], np.float32),
 ]
 
 YOLOV3_ANCHORS = [
