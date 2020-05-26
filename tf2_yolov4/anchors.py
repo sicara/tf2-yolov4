@@ -16,17 +16,17 @@ YOLOV3_ANCHORS = [
 ]
 
 
-def compute_resized_anchors(anchors, input_shape):
+def compute_normalized_anchors(anchors, input_shape):
     """
     Compute anchors resizing based on the architecture input shapes
     Args:
         anchors (List[numpy.array[int, 2]]): List of 3 numpy arrays containing the anchor sizes used for
-            each stage. The first and second columns of the numpy arrays respectively contain the anchors height and
-            width.
+            each stage. The first and second columns of the numpy arrays respectively contain the anchors width and
+            height.
         input_shape (Tuple[int]): Input shape of the Network
 
     Returns:
         (List[numpy.array[int, 2]]): anchors resized based on the input shape of the Network.
     """
-    width, height = input_shape[:2]
-    return [anchor / np.array([height, width]) for anchor in anchors]
+    height, width = input_shape[:2]
+    return [anchor / np.array([width, height]) for anchor in anchors]

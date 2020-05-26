@@ -3,7 +3,7 @@ Model class for YOLOv4
 """
 import tensorflow as tf
 
-from tf2_yolov4.anchors import YOLOV4_ANCHORS, compute_resized_anchors
+from tf2_yolov4.anchors import YOLOV4_ANCHORS, compute_normalized_anchors
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
 from tf2_yolov4.heads.yolov3_head import yolov3_head
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
@@ -24,7 +24,7 @@ def YOLOv4(
     Args:
         input_shape (Tuple[int]): Input shape of the image
         anchors (List[numpy.array[int, 2]]): List of 3 numpy arrays containing the anchor sizes used for each stage.
-            The first and second columns of the numpy arrays contain respectively the height and the width of the
+            The first and second columns of the numpy arrays contain respectively the width and the height of the
             anchors.
         num_classes (int): Number of classes.
         training (boolean): If False, will output boxes computed through YOLO regression and NMS, and YOLO features
@@ -39,10 +39,10 @@ def YOLOv4(
 
     neck = yolov4_neck(input_shapes=backbone.output_shape)
 
-    resized_anchors = compute_resized_anchors(anchors, input_shape)
+    normalized_anchors = compute_normalized_anchors(anchors, input_shape)
     head = yolov3_head(
         input_shapes=neck.output_shape,
-        anchors=resized_anchors,
+        anchors=normalized_anchors,
         num_classes=num_classes,
         training=training,
         yolo_max_boxes=yolo_max_boxes,
