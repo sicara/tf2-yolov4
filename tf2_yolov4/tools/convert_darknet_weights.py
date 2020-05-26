@@ -12,6 +12,7 @@ from tf2_yolov4.anchors import YOLOV4_ANCHORS
 from tf2_yolov4.model import YOLOv4
 
 
+# pylint: disable=too-many-locals
 @click.command()
 @click.argument("darknet-weights-path", type=click.Path(exists=True))
 @click.option(
@@ -43,6 +44,7 @@ def convert_darknet_weights(
     model = YOLOv4(
         input_shape=input_shape, num_classes=num_classes, anchors=YOLOV4_ANCHORS
     )
+    # pylint: disable=E1101
     model.predict(np.random.random((1, *input_shape)))
 
     sample_conv_weights = (
@@ -72,6 +74,7 @@ def convert_darknet_weights(
 
     # Open darknet file and read headers
     darknet_weight_file = open(darknet_weights_path, "rb")
+    # pylint: disable=unused-variable
     major, minor, revision, seen, _ = np.fromfile(
         darknet_weight_file, dtype=np.int32, count=5
     )
@@ -81,7 +84,7 @@ def convert_darknet_weights(
     # Otherwise (conv has a bias), index is kept still.
     current_matching_batch_norm_index = 0
 
-    for layer_index, layer in enumerate(conv_layers):
+    for layer in conv_layers:
         kernel_size = layer.kernel_size
         input_filters = layer.input_shape[-1]
         filters = layer.filters
