@@ -10,13 +10,26 @@
 This implementation runs (for now) inference with the original Darknet weights from [AlexeyAB](https://www.github.com/AlexeyAB/darknet).
 See the roadmap section to see what's next.
 
-## Requirements:
+## Installation
+
+To install this package, you can run:
+
+```bash
+pip install https://github.com/sicara/tf2-yolov4/archive/master.zip
+pip install tensorflow
+# Check that tf2_yolov4 is installed properly
+python -c "from tf2_yolov4.model import YOLOv4; print(YOLOv4)"
+```
+
+Check the [detect script](https://github.com/sicara/tf2-yolov4/blob/master/scripts/detect.py) to run a prediction.
+
+Requirements:
 
 - MacOs >= 10.15 since tensorflow-addons is not available for older release of MacOs
 - Python >= 3.6
 - Compatible versions between TensorFlow and TensorFlow Addons: check the [compatibility matrix](https://github.com/tensorflow/addons#python-op-compatibility-matrix)
 
-## COCO Weights
+## Pretrained weights
 
 To load the Darknet weights trained on COCO, you have to:
 
