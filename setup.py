@@ -13,7 +13,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/sicara/tf2-yolov4",
     license="MIT",
-    install_requires=["tensorflow-addons>=0.10.0"],
+    install_requires=["tensorflow-addons>=0.9.1"],
     extras_require={"publish": ["bumpversion>=0.5.3", "twine>=1.13.0"],},
     packages=find_packages(),
     python_requires=">=3.6",
@@ -24,6 +24,7 @@ setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Operating System :: OS Independent",
     ],
 )
