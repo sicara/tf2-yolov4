@@ -13,10 +13,15 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/sicara/tf2-yolov4",
     license="MIT",
-    install_requires=["tensorflow-addons>=0.9.1"],
-    extras_require={"publish": ["bumpversion>=0.5.3", "twine>=1.13.0"],},
+    install_requires=["click>=6.7", "numpy>=1.10", "tensorflow-addons>=0.9.1"],
+    extras_require={"publish": ["bumpversion>=0.5.3", "twine>=1.13.0"]},
     packages=find_packages(),
     python_requires=">=3.6",
+    entry_points={
+        "console_scripts": [
+            "convert-darknet-weights = tools.convert_darknet_weights:convert_darknet_weights"
+        ]
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: MIT License",
