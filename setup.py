@@ -19,7 +19,7 @@ setup(
     python_requires=">=3.6",
     entry_points={
         "console_scripts": [
-            "convert-darknet-weights = tools.convert_darknet_weights:convert_darknet_weights"
+            "convert-darknet-weights = tf2_yolov4.tools.convert_darknet_weights:convert_darknet_weights"
         ]
     },
     classifiers=[
