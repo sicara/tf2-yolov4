@@ -39,6 +39,7 @@ jobs:
     strategy:
       matrix:
         python-version: [3.6, 3.7, 3.8]
+        tensorflow-version: [2.1.0, 2.2.0]
 
     steps:
       - uses: actions/checkout@v2
@@ -53,8 +54,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}-2.2.0
+          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}-${{ matrix.tensorflow-version }}
       - name: Install dependencies
-        run: pip install -r requirements-dev.txt && pip install tensorflow==2.2.0
+        run: pip install -r requirements-dev.txt && pip install tensorflow==${{ matrix.tensorflow-version }}
       - name: Test with pytest
         run: make test
