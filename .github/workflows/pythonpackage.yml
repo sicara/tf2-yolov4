@@ -42,9 +42,12 @@ jobs:
         tensorflow-version: [2.1.0, 2.2.0]
         tf-addons-version: [0.9.1, 0.10.0]
         exclude:
-          # tf-addons requires tensorflow>=2.2.0
+          # tf-addons 0.10.0 requires tensorflow>=2.2.0
           - tensorflow-version: 2.1.0
             tf-addons-version: 0.10.0
+          # tf-addons 0.9.1 is incompatible with tensorflow==2.2.0
+          - tensorflow-version: 2.2.0
+            tf-addons-version: 0.9.1
           # Python 3.8 requires tf-addons>=0.10.0
           - python-version: 3.8
             tf-addons-version: 0.9.1
