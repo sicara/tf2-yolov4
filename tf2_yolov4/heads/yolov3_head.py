@@ -5,7 +5,7 @@ Implementation mainly inspired by from https://github.com/zzh8829/yolov3-tf2
 """
 import tensorflow as tf
 
-from tf2_yolov4.anchors import YOLOV3_ANCHORS, compute_resized_anchors
+from tf2_yolov4.anchors import YOLOV3_ANCHORS, compute_normalized_anchors
 from tf2_yolov4.layers import conv_bn
 
 
@@ -26,7 +26,7 @@ def yolov3_head(
             None dimensions are ignored.
             For CSPDarknet53+YOLOv4_neck, those are: [(13, 13, 512), (26, 26, 256) (52, 52, 128)] for a (416,416) input.
         anchors (List[numpy.array[int, 2]]): List of 3 numpy arrays containing the anchor sizes used for each stage.
-            The first and second columns of the numpy arrays respectively contain the anchors height and width.
+            The first and second columns of the numpy arrays respectively contain the anchors width and height.
         num_classes (int): Number of classes.
         training (boolean): If False, will output boxes computed through YOLO regression and NMS, and YOLO features
             otherwise. Set it True for training, and False for inferences.
@@ -159,7 +159,7 @@ def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
         feats_per_stage (tf.Tensor): 5D (N,grid_x,grid_y,num_anchors_per_stage,4+1+num_classes). The last dimension
             consists in (x, y, w, h, obj, ...classes)
         anchors_per_stage (numpy.array[int, 2]): List of 3 numpy arrays containing the anchor used for each stage.
-            The first and second columns respectively contain the anchors height and width.
+            The first and second columns respectively contain the anchors width and height.
         (int): Maximum number of boxes predicted on each image (across all anchors/stages)
     Returns:
         List[tf.Tensor]: 4 Tensors respectively describing
@@ -254,7 +254,7 @@ if __name__ == "__main__":
 
     model = yolov3_head(
         [(13, 13, 1024), (26, 26, 512), (52, 52, 256)],
-        anchors=compute_resized_anchors(YOLOV3_ANCHORS, (416, 416, 3)),
+        anchors=compute_normalized_anchors(YOLOV3_ANCHORS, (416, 416, 3)),
         num_classes=80,
         training=True,
         yolo_max_boxes=50,
