@@ -27,9 +27,9 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-3.7-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+          key: ${{ runner.os }}-3.7-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}-2.2.0
       - name: Install dependencies
-        run: pip install -r requirements-dev.txt && pip install tensorflow==2.1.0
+        run: pip install -r requirements-dev.txt && pip install tensorflow==2.2.0 && pip install tensorflow_addons==0.10.0
       - name: Lint with pylint and black
         run: make lint
 
@@ -38,7 +38,19 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7]
+        python-version: [3.6, 3.7, 3.8]
+        tensorflow-version: [2.1.0, 2.2.0]
+        tf-addons-version: [0.9.1, 0.10.0]
+        exclude:
+          # tf-addons 0.10.0 requires tensorflow>=2.2.0
+          - tensorflow-version: 2.1.0
+            tf-addons-version: 0.10.0
+          # tf-addons 0.9.1 is incompatible with tensorflow==2.2.0
+          - tensorflow-version: 2.2.0
+            tf-addons-version: 0.9.1
+          # Python 3.8 requires tf-addons>=0.10.0
+          - python-version: 3.8
+            tf-addons-version: 0.9.1
 
     steps:
       - uses: actions/checkout@v2
@@ -53,8 +65,8 @@ jobs:
         uses: actions/cache@v1
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements.txt') }}-${{ hashFiles('requirements-dev.txt') }}
+          key: ${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('requirements-dev.txt') }}-${{ matrix.tensorflow-version }}-${{ matrix.tf-addons-version }}
       - name: Install dependencies
-        run: pip install -r requirements-dev.txt && pip install tensorflow==2.1.0
+        run: pip install -r requirements-dev.txt && pip install tensorflow==${{ matrix.tensorflow-version }} && pip install tensorflow_addons==${{ matrix.tf-addons-version }}
       - name: Test with pytest
         run: make test
