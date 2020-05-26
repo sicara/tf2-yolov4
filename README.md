@@ -34,9 +34,10 @@ Requirements:
 To load the Darknet weights trained on COCO, you have to:
 
 - get the weights (yolov4.weights) from [AlexeyAB/darknet](https://www.github.com/AlexeyAB/darknet)
-- run `python tools/weights_convert.py`
+- run `python tools/convert_darknet_weights.py PATH_TO/yolov4.weights`
 
 TF weights should be saved as `yolov4.h5`.
+For more information about the conversion script, run `python tools/convert_darknet_weights.py --help`.
 
 ## Roadmap
 
