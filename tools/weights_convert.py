@@ -7,12 +7,12 @@ from pathlib import Path
 
 import numpy as np
 
-from tf2_yolov4.heads.yolov3_head import YOLOV4_ANCHORS
+from tf2_yolov4.anchors import YOLOV4_ANCHORS
 from tf2_yolov4.model import YOLOv4
 
 DARKNET_WEIGHTS_PATH = Path(".") / "yolov4.weights"
 
-model = YOLOv4((416, 416, 3), YOLOV4_ANCHORS, num_classes=80)
+model = YOLOv4(input_shape=(416, 416, 3), num_classes=80, anchors=YOLOV4_ANCHORS)
 model.predict(np.random.random((1, 416, 416, 3)))
 
 sample_conv_weights = (
