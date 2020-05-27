@@ -22,8 +22,6 @@ pip install tensorflow
 python -c "from tf2_yolov4.model import YOLOv4; print(YOLOv4)"
 ```
 
-Check the [detect script](https://github.com/sicara/tf2-yolov4/blob/master/scripts/detect.py) to run a prediction.
-
 Requirements:
 
 - MacOs >= 10.15 since tensorflow-addons is not available for older release of MacOs
