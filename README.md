@@ -6,6 +6,7 @@
 ![Tensorflow Versions](https://img.shields.io/badge/TensorFlow-2.x-blue.svg)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
 [![Python package](https://github.com/sicara/tf2-yolov4/workflows/Python%20package/badge.svg?branch=master)](https://github.com/sicara/tf2-yolov4/actions?query=workflow%3A%22Python+package%22)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/sicara/tf2-yolov4/blob/master/notebooks/YoloV4_Dectection_Example.ipynb)
 
 This implementation runs (for now) inference with the original Darknet weights from [AlexeyAB](https://www.github.com/AlexeyAB/darknet).
 See the roadmap section to see what's next.
@@ -28,6 +29,10 @@ Requirements:
 - MacOs >= 10.15 since tensorflow-addons is not available for older release of MacOs
 - Python >= 3.6
 - Compatible versions between TensorFlow and TensorFlow Addons: check the [compatibility matrix](https://github.com/tensorflow/addons#python-op-compatibility-matrix)
+
+## Examples in Colab
+
+- [Run detection on a single image](./notebooks/YoloV4_Dectection_Example.ipynb) / [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/sicara/tf2-yolov4/blob/master/notebooks/YoloV4_Dectection_Example.ipynb)
 
 ## Pretrained weights
 
