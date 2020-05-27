@@ -1,5 +1,5 @@
 """
-Script to convert yolov4.weights file from AlexeyAB/darknet to TF2.x
+Script to convert yolov4.weights file from AlexeyAB/darknet to tensorflow weights.
 
 Initial implementation comes from https://github.com/zzh8829/yolov3-tf2
 """
@@ -12,6 +12,10 @@ from tf2_yolov4.anchors import YOLOV4_ANCHORS
 from tf2_yolov4.model import YOLOv4
 
 
+INPUT_SHAPE = (416, 416, 3)
+NUM_CLASSES = 80
+
+
 # pylint: disable=too-many-locals
 @click.command()
 @click.argument("darknet-weights-path", type=click.Path(exists=True))
@@ -20,32 +24,20 @@ from tf2_yolov4.model import YOLOv4
     "-o",
     default=Path(".") / "yolov4.h5",
     type=click.Path(),
-    help="Output weights TF2.x filepath (*.h5)",
+    help="Output tensorflow weights filepath (*.h5)",
 )
-@click.option(
-    "--input-shape",
-    "-s",
-    default=(416, 416, 3),
-    type=click.Tuple([int, int, int]),
-    help="Input shape of the image",
-)
-@click.option("--num-classes", "-n", default=80, type=int, help="Number of classes")
-def convert_darknet_weights(
-    darknet_weights_path, output_weights_path, input_shape, num_classes
-):
-    """ Converts yolov4 darknet weights to TF2.x weights (.h5 file)
+def convert_darknet_weights(darknet_weights_path, output_weights_path):
+    """ Converts yolov4 darknet weights to tensorflow weights (.h5 file)
 
     Args:
         darknet_weights_path (str): Input darknet weights filepath (*.weights).
-        output_weights_path (str): Output weights TF2.x filepath (*.h5).
-        input_shape (Tuple[int]): Input shape of the image.
-        num_classes (int): Number of classes.
+        output_weights_path (str): Output tensorflow weights filepath (*.h5).
     """
     model = YOLOv4(
-        input_shape=input_shape, num_classes=num_classes, anchors=YOLOV4_ANCHORS
+        input_shape=INPUT_SHAPE, num_classes=NUM_CLASSES, anchors=YOLOV4_ANCHORS
     )
     # pylint: disable=E1101
-    model.predict(np.random.random((1, *input_shape)))
+    model.predict(np.random.random((1, *INPUT_SHAPE)))
 
     sample_conv_weights = (
         model.get_layer("CSPDarknet53").get_layer("conv2d_32").get_weights()[0]
