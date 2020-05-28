@@ -11,6 +11,10 @@
 This implementation runs (for now) inference with the original Darknet weights from [AlexeyAB](https://www.github.com/AlexeyAB/darknet).
 See the roadmap section to see what's next.
 
+<p align="center">
+    <img src="./assets/banner.jpeg" width="940" />
+</p>
+
 ## Installation
 
 To install this package, you can run:
@@ -61,3 +65,7 @@ For more information about the conversion script, run `convert-darknet-weights -
     - [ ] DropBlock
 - [ ] Enhancements
     - [ ] Automatic download of pretrained weights (like Keras applications)
+
+## References
+
+- [yolov3-tf2](https://github.com/zzh8829/yolov3-tf2)
