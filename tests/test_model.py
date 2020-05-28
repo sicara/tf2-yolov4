@@ -1,4 +1,7 @@
+import pytest
 import tensorflow as tf
+
+from tf2_yolov4.model import YOLOv4
 
 
 def test_model_should_predict_valid_shapes_at_training(yolov4_training, num_classes):
@@ -30,3 +33,11 @@ def test_model_should_predict_valid_shapes_at_inference(
     assert scores.shape == (n_images, yolo_max_boxes)
     assert classes.shape == (n_images, yolo_max_boxes)
     assert valid_detections.shape == tuple([n_images])
+
+
+def test_model_instanciation_should_fail_with_input_shapes_not_multiple_of_32():
+    with pytest.raises(Exception):
+        YOLOv4((32, 33, 3), 80, [])
+
+    with pytest.raises(Exception):
+        YOLOv4((33, 32, 3), 80, [])
