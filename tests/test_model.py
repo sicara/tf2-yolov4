@@ -35,9 +35,12 @@ def test_model_should_predict_valid_shapes_at_inference(
     assert valid_detections.shape == tuple([n_images])
 
 
-def test_model_instanciation_should_fail_with_input_shapes_not_multiple_of_32():
-    with pytest.raises(Exception):
-        YOLOv4((32, 33, 3), 80, [])
+@pytest.mark.parametrize("input_shape", [(32, 33, 3), (33, 32, 3)])
+def test_model_instanciation_should_fail_with_input_shapes_not_multiple_of_32(
+    input_shape
+):
+    with pytest.raises(ValueError):
+        YOLOv4(input_shape, 80, [])
 
-    with pytest.raises(Exception):
-        YOLOv4((33, 32, 3), 80, [])
+    with pytest.raises(ValueError):
+        YOLOv4(input_shape, 80, [])

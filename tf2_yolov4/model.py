@@ -34,9 +34,20 @@ def YOLOv4(
             during non max regression.
         yolo_score_threshold (float between 0. and 1.): Boxes with score lower than this threshold will be filtered
             out during non max regression.
+
+    Returns:
+        tf.keras.Model: YoloV4 model
+
+    Raises:
+        AttributeError: The ``Raises`` section is a list of all exceptions
+            that are relevant to the interface.
+        ValueError: If height and width in the input_shape  is not a multiple of 32
+
     """
     if (input_shape[0] % 32 != 0) | (input_shape[1] % 32 != 0):
-        raise Exception("Input shapes for Height and Width are not multiple of 32")
+        raise ValueError(
+            f"Provided height and width in input_shape {input_shape} is not a multiple of 32"
+        )
 
     backbone = csp_darknet53(input_shape)
 
