@@ -22,7 +22,7 @@ def YOLOv4(
     YOLOv4 Model
 
     Args:
-        input_shape (Tuple[int]): Input shape of the image
+        input_shape (Tuple[int]): Input shape of the image (H,W,C) . The Height and Width must be multiple of 32
         anchors (List[numpy.array[int, 2]]): List of 3 numpy arrays containing the anchor sizes used for each stage.
             The first and second columns of the numpy arrays contain respectively the width and the height of the
             anchors.
@@ -35,6 +35,9 @@ def YOLOv4(
         yolo_score_threshold (float between 0. and 1.): Boxes with score lower than this threshold will be filtered
             out during non max regression.
     """
+    if (input_shape[0] % 32 != 0) | (input_shape[1] % 32 != 0):
+        raise Exception("Input shapes for Height and Width are not multiple of 32")
+
     backbone = csp_darknet53(input_shape)
 
     neck = yolov4_neck(input_shapes=backbone.output_shape)
