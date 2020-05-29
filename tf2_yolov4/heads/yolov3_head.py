@@ -99,15 +99,15 @@ def yolov3_head(
         )
 
     predictions_1 = tf.keras.layers.Lambda(
-        lambda x_input: yolov3_boxes_regression(x_input, anchors[0]),
+        lambda x_input: yolov3_boxes_regression(x_input, anchors[0])[:-1],
         name="yolov3_boxes_regression_1",
     )(output_1)
     predictions_2 = tf.keras.layers.Lambda(
-        lambda x_input: yolov3_boxes_regression(x_input, anchors[1]),
+        lambda x_input: yolov3_boxes_regression(x_input, anchors[1])[:-1],
         name="yolov3_boxes_regression_2",
     )(output_2)
     predictions_3 = tf.keras.layers.Lambda(
-        lambda x_input: yolov3_boxes_regression(x_input, anchors[2]),
+        lambda x_input: yolov3_boxes_regression(x_input, anchors[2])[:-1],
         name="yolov3_boxes_regression_3",
     )(output_3)
 
@@ -177,6 +177,7 @@ def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
     box_xy = tf.sigmoid(box_xy)
     objectness = tf.sigmoid(objectness)
     class_probs = tf.sigmoid(class_probs)
+    predicted_box = tf.concat((box_xy, box_wh), axis=-1)
 
     grid = tf.meshgrid(tf.range(grid_size_y), tf.range(grid_size_x))
     grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)  # [gy, gx, 1, 2]
@@ -190,7 +191,7 @@ def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
     box_x2y2 = box_xy + box_wh / 2
     bbox = tf.concat([box_x1y1, box_x2y2], axis=-1)
 
-    return bbox, objectness, class_probs
+    return bbox, objectness, class_probs, predicted_box
 
 
 def yolo_nms(yolo_feats, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshold):
