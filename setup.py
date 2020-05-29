@@ -7,7 +7,7 @@ with open("README.md", "r") as f:
 
 setup(
     name="tf2_yolov4",
-    version="0.0.1",
+    version="0.1.0",
     description="TensorFlow 2.x implementation of YOLOv4",
     long_description=long_description,
     long_description_content_type="text/markdown",
