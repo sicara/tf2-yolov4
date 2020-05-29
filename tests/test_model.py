@@ -41,6 +41,3 @@ def test_model_instanciation_should_fail_with_input_shapes_not_multiple_of_32(
 ):
     with pytest.raises(ValueError):
         YOLOv4(input_shape, 80, [])
-
-    with pytest.raises(ValueError):
-        YOLOv4(input_shape, 80, [])
