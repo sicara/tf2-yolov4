@@ -12,8 +12,9 @@ from tf2_yolov4.model import YOLOv4
 YOLOV4_ANCHORS_MASKS = [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
 
 INPUT_SHAPE = (608, 608, 3)
-BATCH_SIZE = 1
-BOUNDING_BOXES_FIXED_NUMBER = 10
+BATCH_SIZE = 16
+BOUNDING_BOXES_FIXED_NUMBER = 50
+PASCAL_VOC_NUM_CLASSES = 20
 
 
 def broadcast_iou(box_1, box_2):
@@ -184,7 +185,7 @@ def pad_bounding_boxes_to_fixed_number_of_bounding_boxes(bounding_boxes, pad_num
     return tf.pad(bounding_boxes, paddings, constant_values=0.0)
 
 
-def prepare_dataset(dataset):
+def prepare_dataset(dataset, shuffle=True):
     dataset = dataset.map(lambda el: (el["image"], el["objects"]))
     dataset = dataset.map(
         lambda image, object: (
@@ -196,7 +197,8 @@ def prepare_dataset(dataset):
                 ],
                 axis=-1,
             ),
-        )
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
     )
     dataset = dataset.map(
         lambda image, bounding_boxes: (
@@ -204,8 +206,18 @@ def prepare_dataset(dataset):
             pad_bounding_boxes_to_fixed_number_of_bounding_boxes(
                 bounding_boxes, pad_number=BOUNDING_BOXES_FIXED_NUMBER
             ),
-        )
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
     )
+    dataset = dataset.map(
+        lambda image, bounding_box: (
+            tf.image.resize(image, INPUT_SHAPE[:2]) / 255.0,
+            bounding_box,
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    )
+    if shuffle:
+        dataset = dataset.shuffle(buffer_size=1000)
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.map(
         lambda image, bounding_box_with_class: (
@@ -218,7 +230,8 @@ def prepare_dataset(dataset):
                 YOLOV4_ANCHORS_MASKS,
                 INPUT_SHAPE[0],  # Assumes square input
             ),
-        )
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
     )
 
     return dataset
@@ -226,11 +239,11 @@ def prepare_dataset(dataset):
 
 voc_dataset = tfds.load("voc", shuffle_files=True)
 ds_train, ds_test = voc_dataset["train"], voc_dataset["test"]
-ds_train = prepare_dataset(ds_train)
-ds_test = prepare_dataset(ds_test)
+ds_train = prepare_dataset(ds_train, shuffle=True)
+ds_test = prepare_dataset(ds_test, shuffle=False)
 
 model = YOLOv4(
-    input_shape=INPUT_SHAPE, anchors=YOLOV4_ANCHORS, num_classes=80, training=True
+    input_shape=INPUT_SHAPE, anchors=YOLOV4_ANCHORS, num_classes=PASCAL_VOC_NUM_CLASSES, training=True
 )
 
 optimizer = tf.keras.optimizers.Adam(lr=1e-4)
@@ -244,8 +257,8 @@ model.compile(optimizer=optimizer, loss=loss)
 history = model.fit(
     ds_train,
     validation_data=ds_test,
-    validation_steps=100,
-    epochs=2,
+    validation_steps=10,
+    epochs=100,
     callbacks=[
         tf.keras.callbacks.TensorBoard(log_dir="./logs"),
         tf.keras.callbacks.ModelCheckpoint(
