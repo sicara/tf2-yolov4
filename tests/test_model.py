@@ -37,7 +37,7 @@ def test_model_should_predict_valid_shapes_at_inference(
 
 @pytest.mark.parametrize("input_shape", [(32, 33, 3), (33, 32, 3)])
 def test_model_instanciation_should_fail_with_input_shapes_not_multiple_of_32(
-    input_shape
+    input_shape,
 ):
     with pytest.raises(ValueError):
         YOLOv4(input_shape, 80, [])
