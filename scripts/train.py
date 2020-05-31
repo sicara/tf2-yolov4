@@ -181,41 +181,75 @@ def pad_bounding_boxes_to_fixed_number_of_bounding_boxes(bounding_boxes, pad_num
     box_number = tf.shape(bounding_boxes)[0]
     paddings = [[0, pad_number - box_number], [0, 0]]
 
-    return tf.pad(bounding_boxes, paddings, constant_values=0.)
+    return tf.pad(bounding_boxes, paddings, constant_values=0.0)
 
 
-ds_train = tfds.load('voc', split='train', shuffle_files=True)
-ds_train = ds_train.map(lambda el: (el["image"], el["objects"]))
-ds_train = ds_train.map(
-    lambda image, object: (
-        image,
-        tf.concat([object["bbox"], tf.expand_dims(tf.cast(object["label"], tf.float32), axis=-1)], axis=-1)
-    )
-)
-ds_train = ds_train.map(
-    lambda image, bounding_boxes: (
-        image,
-        pad_bounding_boxes_to_fixed_number_of_bounding_boxes(bounding_boxes, pad_number=BOUNDING_BOXES_FIXED_NUMBER),
-    )
-)
-ds_train = ds_train.batch(BATCH_SIZE)
-ds_train = ds_train.map(
-    lambda image, bounding_box_with_class: (
-        tf.image.resize(image, INPUT_SHAPE[:2]) / 255.,
-        transform_targets(  # Comes straight from https://github.com/zzh8829/yolov3-tf2/
-            bounding_box_with_class,
-            np.concatenate(YOLOV4_ANCHORS, axis=0),  # Must concatenate because in zzh8829/yolov3-tf2, it's a list of
-            YOLOV4_ANCHORS_MASKS,
-            INPUT_SHAPE[0],  # Assumes square input
+def prepare_dataset(dataset):
+    dataset = dataset.map(lambda el: (el["image"], el["objects"]))
+    dataset = dataset.map(
+        lambda image, object: (
+            image,
+            tf.concat(
+                [
+                    object["bbox"],
+                    tf.expand_dims(tf.cast(object["label"], tf.float32), axis=-1),
+                ],
+                axis=-1,
+            ),
         )
     )
+    dataset = dataset.map(
+        lambda image, bounding_boxes: (
+            image,
+            pad_bounding_boxes_to_fixed_number_of_bounding_boxes(
+                bounding_boxes, pad_number=BOUNDING_BOXES_FIXED_NUMBER
+            ),
+        )
+    )
+    dataset = dataset.batch(BATCH_SIZE)
+    dataset = dataset.map(
+        lambda image, bounding_box_with_class: (
+            tf.image.resize(image, INPUT_SHAPE[:2]) / 255.0,
+            transform_targets(  # Comes straight from https://github.com/zzh8829/yolov3-tf2/
+                bounding_box_with_class,
+                np.concatenate(
+                    YOLOV4_ANCHORS, axis=0
+                ),  # Must concatenate because in zzh8829/yolov3-tf2, it's a list of anchors
+                YOLOV4_ANCHORS_MASKS,
+                INPUT_SHAPE[0],  # Assumes square input
+            ),
+        )
+    )
+
+    return dataset
+
+
+voc_dataset = tfds.load("voc", shuffle_files=True)
+ds_train, ds_test = voc_dataset["train"], voc_dataset["test"]
+ds_train = prepare_dataset(ds_train)
+ds_test = prepare_dataset(ds_test)
+
+model = YOLOv4(
+    input_shape=INPUT_SHAPE, anchors=YOLOV4_ANCHORS, num_classes=80, training=True
 )
 
-model = YOLOv4(input_shape=INPUT_SHAPE, anchors=YOLOV4_ANCHORS, num_classes=80, training=True)
-
 optimizer = tf.keras.optimizers.Adam(lr=1e-4)
-loss = [YoloLoss(np.concatenate(YOLOV4_ANCHORS, axis=0)[mask]) for mask in YOLOV4_ANCHORS_MASKS]
+loss = [
+    YoloLoss(np.concatenate(YOLOV4_ANCHORS, axis=0)[mask])
+    for mask in YOLOV4_ANCHORS_MASKS
+]
 
 model.compile(optimizer=optimizer, loss=loss)
 
-history = model.fit(ds_train, epochs=2)
+history = model.fit(
+    ds_train,
+    validation_data=ds_test,
+    validation_steps=100,
+    epochs=2,
+    callbacks=[
+        tf.keras.callbacks.TensorBoard(log_dir="./logs"),
+        tf.keras.callbacks.ModelCheckpoint(
+            "yolov4_best.h5", save_best_only=True, save_weights_only=True
+        ),
+    ],
+)
