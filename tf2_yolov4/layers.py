@@ -1,6 +1,7 @@
 """Common layer architecture such as Conv->BN->Mish or Conv->BN->LeakyReLU"""
 import tensorflow as tf
 import tensorflow_addons as tfa
+from tensorflow.python.keras.layers import Lambda
 
 
 def conv_bn(
@@ -41,6 +42,17 @@ def conv_bn(
     if activation == "leaky_relu":
         x = tf.keras.layers.LeakyReLU(alpha=0.1)(x)
     elif activation == "mish":
-        x = tfa.activations.mish(x)
+        x = Mish()(x)
 
     return x
+
+
+class Mish(Lambda):
+    def __init__(self, output_shape=None, mask=None, arguments=None, **kwargs):
+        super(Mish, self).__init__(
+            function=tfa.activations.mish,
+            output_shape=output_shape,
+            mask=mask,
+            arguments=arguments,
+            **kwargs
+        )
