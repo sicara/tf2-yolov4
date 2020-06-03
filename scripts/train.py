@@ -226,7 +226,7 @@ def prepare_dataset(dataset, shuffle=True):
     dataset = dataset.batch(BATCH_SIZE)
     dataset = dataset.map(
         lambda image, bounding_box_with_class: (
-            tf.image.resize(image, INPUT_SHAPE[:2]) / 255.0,
+            image,
             transform_targets(  # Comes straight from https://github.com/zzh8829/yolov3-tf2/
                 bounding_box_with_class,
                 np.concatenate(
