@@ -1,6 +1,9 @@
 """
 Training script for Pascal VOC using tf2-yolov4
 """
+from datetime import datetime
+from pathlib import Path
+
 import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -12,9 +15,11 @@ from tf2_yolov4.model import YOLOv4
 YOLOV4_ANCHORS_MASKS = [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
 
 INPUT_SHAPE = (608, 608, 3)
-BATCH_SIZE = 16
+BATCH_SIZE = 8
 BOUNDING_BOXES_FIXED_NUMBER = 50
 PASCAL_VOC_NUM_CLASSES = 20
+
+LOG_DIR = Path("./logs") / datetime.now().strftime("%m-%d-%Y %H:%M:%S")
 
 
 def broadcast_iou(box_1, box_2):
@@ -245,24 +250,67 @@ ds_test = prepare_dataset(ds_test, shuffle=False)
 model = YOLOv4(
     input_shape=INPUT_SHAPE, anchors=YOLOV4_ANCHORS, num_classes=PASCAL_VOC_NUM_CLASSES, training=True
 )
+darknet_weights = Path("./yolov4.h5")
+if darknet_weights.exists():
+    model.load_weights(str(darknet_weights), by_name=True, skip_mismatch=True)
+    print("Darknet weights loaded.")
 
-optimizer = tf.keras.optimizers.Adam(lr=1e-4)
+optimizer = tf.keras.optimizers.Adam(1e-4)
 loss = [
     YoloLoss(np.concatenate(YOLOV4_ANCHORS, axis=0)[mask])
     for mask in YOLOV4_ANCHORS_MASKS
 ]
 
+model.summary()
+# Start training: 5 epochs with backbone + neck frozen
+ALL_FROZEN_EPOCH_NUMBER = 10
+for layer in model.get_layer("CSPDarknet53").layers + model.get_layer("YOLOv4_neck").layers:
+    layer.trainable = False
 model.compile(optimizer=optimizer, loss=loss)
-
 history = model.fit(
     ds_train,
     validation_data=ds_test,
     validation_steps=10,
-    epochs=100,
+    epochs=ALL_FROZEN_EPOCH_NUMBER,
     callbacks=[
-        tf.keras.callbacks.TensorBoard(log_dir="./logs"),
+        tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR),
         tf.keras.callbacks.ModelCheckpoint(
-            "yolov4_best.h5", save_best_only=True, save_weights_only=True
+            "yolov4_all_frozen.h5", save_best_only=True, save_weights_only=True
+        ),
+    ],
+)
+# Keep training: 10 epochs with backbone frozen -- unfreeze neck
+BACKBONE_FROZEN_EPOCH_NUMBER = 10
+for layer in model.get_layer("YOLOv4_neck").layers:
+    layer.trainable = False
+model.compile(optimizer=optimizer, loss=loss)
+history = model.fit(
+    ds_train,
+    validation_data=ds_test,
+    validation_steps=10,
+    epochs=BACKBONE_FROZEN_EPOCH_NUMBER + ALL_FROZEN_EPOCH_NUMBER,
+    initial_epoch=ALL_FROZEN_EPOCH_NUMBER,
+    callbacks=[
+        tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR),
+        tf.keras.callbacks.ModelCheckpoint(
+            "yolov4_backbone_frozen.h5", save_best_only=True, save_weights_only=True, verbose=True,
+        ),
+    ],
+)
+# Final training: 35 epochs with all weights unfrozen
+for layer in model.get_layer("CSPDarknet53").layers:
+    layer.trainable = True
+model.compile(optimizer=optimizer, loss=loss)
+history = model.fit(
+    ds_train,
+    validation_data=ds_test,
+    validation_steps=10,
+    epochs=50,
+    initial_epoch=ALL_FROZEN_EPOCH_NUMBER + BACKBONE_FROZEN_EPOCH_NUMBER,
+    callbacks=[
+        tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR),
+        tf.keras.callbacks.ModelCheckpoint(
+            "yolov4_full.h5", save_best_only=True, save_weights_only=True
         ),
     ],
 )
