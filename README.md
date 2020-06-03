@@ -2,6 +2,7 @@
 
 > A TensorFlow 2.0 implementation of YOLOv4: Optimal Speed and Accuracy of Object Detection
 
+[![Pypi Version](https://img.shields.io/pypi/v/tf2-yolov4.svg)](https://pypi.org/project/tf2-yolov4/)
 ![Python Versions](https://img.shields.io/badge/python-3.6%20|%203.7%20|%203.8-%23EBBD68.svg)
 ![Tensorflow Versions](https://img.shields.io/badge/TensorFlow-2.x-blue.svg)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/python/black)
@@ -20,7 +21,7 @@ See the roadmap section to see what's next.
 To install this package, you can run:
 
 ```bash
-pip install https://github.com/sicara/tf2-yolov4/archive/master.zip
+pip install tf2_yolov4
 pip install tensorflow
 # Check that tf2_yolov4 is installed properly
 python -c "from tf2_yolov4.model import YOLOv4; print(YOLOv4)"
