@@ -242,7 +242,7 @@ def prepare_dataset(dataset, shuffle=True):
             transform_targets(  # Comes straight from https://github.com/zzh8829/yolov3-tf2/
                 bounding_box_with_class,
                 np.concatenate(
-                    YOLOV4_ANCHORS, axis=0
+                    list(reversed(YOLOV4_ANCHORS)), axis=0
                 ),  # Must concatenate because in zzh8829/yolov3-tf2, it's a list of anchors
                 YOLOV4_ANCHORS_MASKS,
                 INPUT_SHAPE[0],  # Assumes square input
@@ -273,7 +273,7 @@ if __name__ == "__main__":
 
     optimizer = tf.keras.optimizers.Adam(1e-4)
     loss = [
-        YoloLoss(np.concatenate(YOLOV4_ANCHORS, axis=0)[mask])
+        YoloLoss(np.concatenate(list(reversed(YOLOV4_ANCHORS)), axis=0)[mask])
         for mask in YOLOV4_ANCHORS_MASKS
     ]
 
