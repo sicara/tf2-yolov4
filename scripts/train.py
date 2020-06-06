@@ -21,6 +21,10 @@ PASCAL_VOC_NUM_CLASSES = 20
 
 LOG_DIR = Path("./logs") / datetime.now().strftime("%m-%d-%Y %H:%M:%S")
 
+ALL_FROZEN_EPOCH_NUMBER = 10
+BACKBONE_FROZEN_EPOCH_NUMBER = 10
+TOTAL_NUMBER_OF_EPOCHS = 50
+
 
 def broadcast_iou(box_1, box_2):
     # box_1: (..., (x1, y1, x2, y2))
@@ -197,7 +201,15 @@ def prepare_dataset(dataset, shuffle=True):
             image,
             tf.concat(
                 [
-                    object["bbox"],
+                    tf.stack(
+                        [
+                            object["bbox"][:, 1],
+                            object["bbox"][:, 0],
+                            object["bbox"][:, 3],
+                            object["bbox"][:, 2],
+                        ],
+                        axis=-1,
+                    ),
                     tf.expand_dims(tf.cast(object["label"], tf.float32), axis=-1),
                 ],
                 axis=-1,
@@ -249,7 +261,10 @@ if __name__ == "__main__":
     ds_test = prepare_dataset(ds_test, shuffle=False)
 
     model = YOLOv4(
-        input_shape=INPUT_SHAPE, anchors=YOLOV4_ANCHORS, num_classes=PASCAL_VOC_NUM_CLASSES, training=True
+        input_shape=INPUT_SHAPE,
+        anchors=YOLOV4_ANCHORS,
+        num_classes=PASCAL_VOC_NUM_CLASSES,
+        training=True,
     )
     darknet_weights = Path("./yolov4.h5")
     if darknet_weights.exists():
@@ -264,8 +279,9 @@ if __name__ == "__main__":
 
     model.summary()
     # Start training: 5 epochs with backbone + neck frozen
-    ALL_FROZEN_EPOCH_NUMBER = 10
-    for layer in model.get_layer("CSPDarknet53").layers + model.get_layer("YOLOv4_neck").layers:
+    for layer in (
+        model.get_layer("CSPDarknet53").layers + model.get_layer("YOLOv4_neck").layers
+    ):
         layer.trainable = False
     model.compile(optimizer=optimizer, loss=loss)
     history = model.fit(
@@ -281,9 +297,8 @@ if __name__ == "__main__":
         ],
     )
     # Keep training: 10 epochs with backbone frozen -- unfreeze neck
-    BACKBONE_FROZEN_EPOCH_NUMBER = 10
     for layer in model.get_layer("YOLOv4_neck").layers:
-        layer.trainable = False
+        layer.trainable = True
     model.compile(optimizer=optimizer, loss=loss)
     history = model.fit(
         ds_train,
@@ -294,7 +309,10 @@ if __name__ == "__main__":
         callbacks=[
             tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR),
             tf.keras.callbacks.ModelCheckpoint(
-                "yolov4_backbone_frozen.h5", save_best_only=True, save_weights_only=True, verbose=True,
+                "yolov4_backbone_frozen.h5",
+                save_best_only=True,
+                save_weights_only=True,
+                verbose=True,
             ),
         ],
     )
@@ -306,12 +324,18 @@ if __name__ == "__main__":
         ds_train,
         validation_data=ds_test,
         validation_steps=10,
-        epochs=50,
+        epochs=TOTAL_NUMBER_OF_EPOCHS,
         initial_epoch=ALL_FROZEN_EPOCH_NUMBER + BACKBONE_FROZEN_EPOCH_NUMBER,
         callbacks=[
             tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR),
             tf.keras.callbacks.ModelCheckpoint(
                 "yolov4_full.h5", save_best_only=True, save_weights_only=True
+            ),
+            tf.keras.callbacks.ModelCheckpoint(
+                "yolov4_train_loss.h5",
+                save_best_only=True,
+                save_weights_only=True,
+                monitor="loss",
             ),
         ],
     )
