@@ -295,7 +295,7 @@ if __name__ == "__main__":
         callbacks=[
             tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR),
             tf.keras.callbacks.ModelCheckpoint(
-                "yolov4_all_frozen.h5", save_best_only=True, save_weights_only=True
+                str(LOG_DIR / "yolov4_all_frozen.h5"), save_best_only=True, save_weights_only=True
             ),
         ],
     )
@@ -312,7 +312,7 @@ if __name__ == "__main__":
         callbacks=[
             tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR),
             tf.keras.callbacks.ModelCheckpoint(
-                "yolov4_backbone_frozen.h5",
+                str(LOG_DIR / "yolov4_backbone_frozen.h5"),
                 save_best_only=True,
                 save_weights_only=True,
                 verbose=True,
@@ -332,10 +332,12 @@ if __name__ == "__main__":
         callbacks=[
             tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR),
             tf.keras.callbacks.ModelCheckpoint(
-                "yolov4_full.h5", save_best_only=True, save_weights_only=True
+                str(LOG_DIR / "yolov4_full.h5"),
+                save_best_only=True,
+                save_weights_only=True,
             ),
             tf.keras.callbacks.ModelCheckpoint(
-                "yolov4_train_loss.h5",
+                str(LOG_DIR / "yolov4_train_loss.h5"),
                 save_best_only=True,
                 save_weights_only=True,
                 monitor="loss",
