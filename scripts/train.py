@@ -8,16 +8,17 @@ import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
 
-from tf2_yolov4.anchors import YOLOV4_ANCHORS
+from tf2_yolov4.anchors import YOLOV4_ANCHORS, compute_normalized_anchors
 from tf2_yolov4.heads.yolov3_head import yolov3_boxes_regression
 from tf2_yolov4.model import YOLOv4
-
-YOLOV4_ANCHORS_MASKS = [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
 
 INPUT_SHAPE = (608, 608, 3)
 BATCH_SIZE = 8
 BOUNDING_BOXES_FIXED_NUMBER = 50
 PASCAL_VOC_NUM_CLASSES = 20
+
+YOLOV4_ANCHORS_MASKS = [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
+YOLOV4_ANCHORS_NORMALIZED = compute_normalized_anchors(YOLOV4_ANCHORS, INPUT_SHAPE)
 
 LOG_DIR = Path("./logs") / datetime.now().strftime("%m-%d-%Y %H:%M:%S")
 
@@ -242,7 +243,7 @@ def prepare_dataset(dataset, shuffle=True):
             transform_targets(  # Comes straight from https://github.com/zzh8829/yolov3-tf2/
                 bounding_box_with_class,
                 np.concatenate(
-                    list(reversed(YOLOV4_ANCHORS)), axis=0
+                    list(reversed(YOLOV4_ANCHORS_NORMALIZED)), axis=0
                 ),  # Must concatenate because in zzh8829/yolov3-tf2, it's a list of anchors
                 YOLOV4_ANCHORS_MASKS,
                 INPUT_SHAPE[0],  # Assumes square input
@@ -273,7 +274,9 @@ if __name__ == "__main__":
 
     optimizer = tf.keras.optimizers.Adam(1e-4)
     loss = [
-        YoloLoss(np.concatenate(list(reversed(YOLOV4_ANCHORS)), axis=0)[mask])
+        YoloLoss(
+            np.concatenate(list(reversed(YOLOV4_ANCHORS_NORMALIZED)), axis=0)[mask]
+        )
         for mask in YOLOV4_ANCHORS_MASKS
     ]
 
