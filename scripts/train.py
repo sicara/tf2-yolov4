@@ -295,7 +295,9 @@ if __name__ == "__main__":
         callbacks=[
             tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR),
             tf.keras.callbacks.ModelCheckpoint(
-                str(LOG_DIR / "yolov4_all_frozen.h5"), save_best_only=True, save_weights_only=True
+                str(LOG_DIR / "yolov4_all_frozen.h5"),
+                save_best_only=True,
+                save_weights_only=True,
             ),
         ],
     )
