@@ -24,7 +24,8 @@ def yolov3_head(
     Args:
         input_shapes (List[Tuple[int]]): List of 3 tuples, which are the output shapes of the neck.
             None dimensions are ignored.
-            For CSPDarknet53+YOLOv4_neck, those are: [(13, 13, 512), (26, 26, 256) (52, 52, 128)] for a (416,416) input.
+            For CSPDarknet53+YOLOv4_neck, those are: [ (52, 52, 128), (26, 26, 256), (13, 13, 512)] for a (416,
+            416) input.
         anchors (List[numpy.array[int, 2]]): List of 3 numpy arrays containing the anchor sizes used for each stage.
             The first and second columns of the numpy arrays respectively contain the anchors width and height.
         num_classes (int): Number of classes.
@@ -100,15 +101,15 @@ def yolov3_head(
 
     predictions_1 = tf.keras.layers.Lambda(
         lambda x_input: yolov3_boxes_regression(x_input, anchors[0]),
-        name="yolov3_boxes_regression_1",
+        name="yolov3_boxes_regression_small",
     )(output_1)
     predictions_2 = tf.keras.layers.Lambda(
         lambda x_input: yolov3_boxes_regression(x_input, anchors[1]),
-        name="yolov3_boxes_regression_2",
+        name="yolov3_boxes_regression_medium",
     )(output_2)
     predictions_3 = tf.keras.layers.Lambda(
         lambda x_input: yolov3_boxes_regression(x_input, anchors[2]),
-        name="yolov3_boxes_regression_3",
+        name="yolov3_boxes_regression__big",
     )(output_3)
 
     output = tf.keras.layers.Lambda(
@@ -168,7 +169,7 @@ def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
         class_probs (N,grid_x,grid_y,num_anchors,num_classes),
     """
     grid_size_x, grid_size_y = feats_per_stage.shape[1], feats_per_stage.shape[2]
-    num_classes = feats_per_stage.shape[-1] - 5  # th.shape[-1] = 4+1+num_classes
+    num_classes = feats_per_stage.shape[-1] - 5  # feats.shape[-1] = 4 + 1 + num_classes
 
     box_xy, box_wh, objectness, class_probs = tf.split(
         feats_per_stage, (2, 2, 1, num_classes), axis=-1
@@ -253,7 +254,7 @@ def yolo_nms(yolo_feats, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshol
 if __name__ == "__main__":
 
     model = yolov3_head(
-        [(13, 13, 1024), (26, 26, 512), (52, 52, 256)],
+        [(52, 52, 256), (26, 26, 512), (13, 13, 1024)],
         anchors=compute_normalized_anchors(YOLOV3_ANCHORS, (416, 416, 3)),
         num_classes=80,
         training=True,

@@ -10,7 +10,7 @@ def yolov4_neck(input_shapes):
 
     Args:
         input_shapes (List[Tuple[int]]): List of 3 tuples, which are the output shapes of the backbone.
-            For CSPDarknet53, those are: [(13, 13, 1024), (26, 26, 512), (52, 52, 256)] for a (416, 416) input.
+            For CSPDarknet53, those are: [(52, 52, 256), (26, 26, 512), (13, 13, 1024)] for a (416, 416) input.
 
     Returns:
         tf.keras.Model: Neck model
@@ -73,5 +73,5 @@ def yolov4_neck(input_shapes):
 
 
 if __name__ == "__main__":
-    model = yolov4_neck([(13, 13, 1024), (26, 26, 512), (52, 52, 256)])
+    model = yolov4_neck([(52, 52, 256), (26, 26, 512), (13, 13, 1024)])
     model.summary()
