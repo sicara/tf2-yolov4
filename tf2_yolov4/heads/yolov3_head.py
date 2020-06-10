@@ -42,13 +42,13 @@ def yolov3_head(
     input_2 = tf.keras.Input(shape=filter(None, input_shapes[1]))
     input_3 = tf.keras.Input(shape=filter(None, input_shapes[2]))
 
-    x = conv_bn(input_3, filters=256, kernel_size=3, strides=1, activation="leaky_relu")
-    output_3 = conv_classes_anchors(
+    x = conv_bn(input_1, filters=256, kernel_size=3, strides=1, activation="leaky_relu")
+    output_1 = conv_classes_anchors(
         x, num_anchors_stage=len(anchors[0]), num_classes=num_classes
     )
 
     x = conv_bn(
-        input_3,
+        input_1,
         filters=256,
         kernel_size=3,
         strides=2,
@@ -80,14 +80,14 @@ def yolov3_head(
         padding="valid",
         activation="leaky_relu",
     )
-    x = tf.keras.layers.Concatenate()([x, input_1])
+    x = tf.keras.layers.Concatenate()([x, input_3])
     x = conv_bn(x, filters=512, kernel_size=1, strides=1, activation="leaky_relu")
     x = conv_bn(x, filters=1024, kernel_size=3, strides=1, activation="leaky_relu")
     x = conv_bn(x, filters=512, kernel_size=1, strides=1, activation="leaky_relu")
     x = conv_bn(x, filters=1024, kernel_size=3, strides=1, activation="leaky_relu")
     x = conv_bn(x, filters=512, kernel_size=1, strides=1, activation="leaky_relu")
     x = conv_bn(x, filters=1024, kernel_size=3, strides=1, activation="leaky_relu")
-    output_1 = conv_classes_anchors(
+    output_3 = conv_classes_anchors(
         x, num_anchors_stage=len(anchors[2]), num_classes=num_classes
     )
 
