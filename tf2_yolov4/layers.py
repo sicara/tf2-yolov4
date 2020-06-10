@@ -48,11 +48,12 @@ def conv_bn(
 
 
 class Mish(Lambda):
-    def __init__(self, output_shape=None, mask=None, arguments=None, **kwargs):
-        super(Mish, self).__init__(
-            function=tfa.activations.mish,
-            output_shape=output_shape,
-            mask=mask,
-            arguments=arguments,
-            **kwargs
-        )
+    """
+    Layer applying the Mish activation (see paper https://arxiv.org/abs/1908.08681).
+    """
+
+    def __init__(self):
+        """
+        Applies the mish function (from tensorflow-addons).
+        """
+        super(Mish, self).__init__(function=tfa.activations.mish)
