@@ -14,13 +14,13 @@ def cspdarknet53_416():
 
 @pytest.fixture(scope="session")
 def yolov4_neck_416():
-    input_shapes = [(13, 13, 1024), (26, 26, 512), (52, 52, 256)]
+    input_shapes = [(52, 52, 256), (26, 26, 512), (13, 13, 1024)]
     return yolov4_neck(input_shapes)
 
 
 @pytest.fixture(scope="session")
 def yolov3_head_416_training(num_classes, yolo_max_boxes):
-    input_shapes = [(13, 13, 512), (26, 26, 256), (52, 52, 128)]
+    input_shapes = [(52, 52, 128), (26, 26, 256), (13, 13, 512)]
 
     return yolov3_head(
         input_shapes,
@@ -35,7 +35,7 @@ def yolov3_head_416_training(num_classes, yolo_max_boxes):
 
 @pytest.fixture(scope="session")
 def yolov3_head_416_inference(num_classes, yolo_max_boxes):
-    input_shapes = [(13, 13, 512), (26, 26, 256), (52, 52, 128)]
+    input_shapes = [(52, 52, 128), (26, 26, 256), (13, 13, 512)]
 
     return yolov3_head(
         input_shapes,
