@@ -101,15 +101,15 @@ def yolov3_head(
 
     predictions_1 = tf.keras.layers.Lambda(
         lambda x_input: yolov3_boxes_regression(x_input, anchors[0]),
-        name="yolov3_boxes_regression_small",
+        name="yolov3_boxes_regression_small_scale",
     )(output_1)
     predictions_2 = tf.keras.layers.Lambda(
         lambda x_input: yolov3_boxes_regression(x_input, anchors[1]),
-        name="yolov3_boxes_regression_medium",
+        name="yolov3_boxes_regression_medium_scale",
     )(output_2)
     predictions_3 = tf.keras.layers.Lambda(
         lambda x_input: yolov3_boxes_regression(x_input, anchors[2]),
-        name="yolov3_boxes_regression__big",
+        name="yolov3_boxes_regression_large_scale",
     )(output_3)
 
     output = tf.keras.layers.Lambda(
