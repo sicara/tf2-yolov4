@@ -18,7 +18,7 @@ model = YOLOv4(
     training=False,
     yolo_max_boxes=100,
     yolo_iou_threshold=0.5,
-    yolo_score_threshold=0.5,
+    yolo_score_threshold=0.15,
 )
 
 model.load_weights("../yolov4_full.h5")

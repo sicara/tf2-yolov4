@@ -12,7 +12,7 @@ from tf2_yolov4.anchors import YOLOV4_ANCHORS, compute_normalized_anchors
 from tf2_yolov4.heads.yolov3_head import yolov3_boxes_regression
 from tf2_yolov4.model import YOLOv4
 
-INPUT_SHAPE = (608, 608, 3)
+INPUT_SHAPE = (416, 416, 3)
 BATCH_SIZE = 8
 BOUNDING_BOXES_FIXED_NUMBER = 50
 PASCAL_VOC_NUM_CLASSES = 20
@@ -22,7 +22,7 @@ YOLOV4_ANCHORS_NORMALIZED = compute_normalized_anchors(YOLOV4_ANCHORS, INPUT_SHA
 
 LOG_DIR = Path("./logs") / datetime.now().strftime("%m-%d-%Y %H:%M:%S")
 
-ALL_FROZEN_EPOCH_NUMBER = 10
+ALL_FROZEN_EPOCH_NUMBER = 15
 BACKBONE_FROZEN_EPOCH_NUMBER = 10
 TOTAL_NUMBER_OF_EPOCHS = 50
 
@@ -185,7 +185,7 @@ def transform_targets(y_train, anchors, anchor_masks, size):
         y_outs.append(transform_targets_for_output(y_train, grid_size, anchor_idxs))
         grid_size *= 2
 
-    return tuple(y_outs)
+    return tuple(reversed(y_outs))
 
 
 def pad_bounding_boxes_to_fixed_number_of_bounding_boxes(bounding_boxes, pad_number):
@@ -195,7 +195,43 @@ def pad_bounding_boxes_to_fixed_number_of_bounding_boxes(bounding_boxes, pad_num
     return tf.pad(bounding_boxes, paddings, constant_values=0.0)
 
 
-def prepare_dataset(dataset, shuffle=True):
+def random_flip_right_with_bounding_boxes(images, bounding_boxes):
+    apply_flip = tf.random.uniform(shape=[]) > 0.5
+    if apply_flip:
+        images = tf.image.flip_left_right(images)
+        bounding_boxes = tf.stack(
+            [
+                1.0 - bounding_boxes[..., 2],
+                bounding_boxes[..., 1],
+                1.0 - bounding_boxes[..., 0],
+                bounding_boxes[..., 3],
+                bounding_boxes[..., 4],
+            ],
+            axis=-1,
+        )
+
+    return images, bounding_boxes
+
+
+def augment_images(images, bounding_boxes):
+    # Image transformations that do not affect bounding boxes
+    images = tf.image.random_hue(images, 0.15)
+    images = tf.image.random_brightness(images, 0.15)
+
+    # Transformations that affect bounding boxes
+    images, bounding_boxes = random_flip_right_with_bounding_boxes(
+        images, bounding_boxes
+    )
+
+    return images, bounding_boxes
+
+
+def prepare_dataset(
+    dataset,
+    shuffle=True,
+    apply_data_augmentation=False,
+    transform_to_bbox_by_stage=True,
+):
     dataset = dataset.map(lambda el: (el["image"], el["objects"]))
     dataset = dataset.map(
         lambda image, object: (
@@ -219,6 +255,19 @@ def prepare_dataset(dataset, shuffle=True):
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
     )
     dataset = dataset.map(
+        lambda image, bounding_box: (
+            tf.image.resize(image, INPUT_SHAPE[:2]) / 255.0,
+            bounding_box,
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    )
+    if apply_data_augmentation:
+        dataset = dataset.map(
+            augment_images, num_parallel_calls=tf.data.experimental.AUTOTUNE
+        )
+    if shuffle:
+        dataset = dataset.shuffle(buffer_size=1000)
+    dataset = dataset.map(
         lambda image, bounding_boxes: (
             image,
             pad_bounding_boxes_to_fixed_number_of_bounding_boxes(
@@ -227,39 +276,42 @@ def prepare_dataset(dataset, shuffle=True):
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
     )
-    dataset = dataset.map(
-        lambda image, bounding_box: (
-            tf.image.resize(image, INPUT_SHAPE[:2]) / 255.0,
-            bounding_box,
-        ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
-    )
-    if shuffle:
-        dataset = dataset.shuffle(buffer_size=1000)
     dataset = dataset.batch(BATCH_SIZE)
-    dataset = dataset.map(
-        lambda image, bounding_box_with_class: (
-            image,
-            transform_targets(  # Comes straight from https://github.com/zzh8829/yolov3-tf2/
-                bounding_box_with_class,
-                np.concatenate(
-                    list(reversed(YOLOV4_ANCHORS_NORMALIZED)), axis=0
-                ),  # Must concatenate because in zzh8829/yolov3-tf2, it's a list of anchors
-                YOLOV4_ANCHORS_MASKS,
-                INPUT_SHAPE[0],  # Assumes square input
-            ),
-        ),
-        num_parallel_calls=tf.data.experimental.AUTOTUNE,
-    )
 
-    return dataset
+    if transform_to_bbox_by_stage:
+        dataset = dataset.map(
+            lambda image, bounding_box_with_class: (
+                image,
+                transform_targets(  # Comes straight from https://github.com/zzh8829/yolov3-tf2/
+                    bounding_box_with_class,
+                    np.concatenate(
+                        list(YOLOV4_ANCHORS_NORMALIZED), axis=0
+                    ),  # Must concatenate because in zzh8829/yolov3-tf2, it's a list of anchors
+                    YOLOV4_ANCHORS_MASKS,
+                    INPUT_SHAPE[0],  # Assumes square input
+                ),
+            ),
+            num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        )
+    dataset = dataset.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+    return dataset.repeat()
 
 
 if __name__ == "__main__":
-    voc_dataset = tfds.load("voc", shuffle_files=True)
+    voc_dataset, infos = tfds.load("voc", with_info=True, shuffle_files=True)
     ds_train, ds_test = voc_dataset["train"], voc_dataset["test"]
-    ds_train = prepare_dataset(ds_train, shuffle=True)
-    ds_test = prepare_dataset(ds_test, shuffle=False)
+    ds_train = prepare_dataset(
+        ds_train,
+        shuffle=True,
+        apply_data_augmentation=True,
+        transform_to_bbox_by_stage=True,
+    )
+    ds_test = prepare_dataset(
+        ds_test,
+        shuffle=False,
+        apply_data_augmentation=False,
+        transform_to_bbox_by_stage=True,
+    )
 
     model = YOLOv4(
         input_shape=INPUT_SHAPE,
@@ -275,7 +327,7 @@ if __name__ == "__main__":
     optimizer = tf.keras.optimizers.Adam(1e-4)
     loss = [
         YoloLoss(
-            np.concatenate(list(reversed(YOLOV4_ANCHORS_NORMALIZED)), axis=0)[mask]
+            np.concatenate(list(YOLOV4_ANCHORS_NORMALIZED), axis=0)[mask]
         )
         for mask in YOLOV4_ANCHORS_MASKS
     ]
@@ -289,6 +341,7 @@ if __name__ == "__main__":
     model.compile(optimizer=optimizer, loss=loss)
     history = model.fit(
         ds_train,
+        steps_per_epoch=infos.splits["train"].num_examples // BATCH_SIZE,
         validation_data=ds_test,
         validation_steps=10,
         epochs=ALL_FROZEN_EPOCH_NUMBER,
@@ -307,6 +360,7 @@ if __name__ == "__main__":
     model.compile(optimizer=optimizer, loss=loss)
     history = model.fit(
         ds_train,
+        steps_per_epoch=infos.splits["train"].num_examples // BATCH_SIZE,
         validation_data=ds_test,
         validation_steps=10,
         epochs=BACKBONE_FROZEN_EPOCH_NUMBER + ALL_FROZEN_EPOCH_NUMBER,
@@ -327,6 +381,7 @@ if __name__ == "__main__":
     model.compile(optimizer=optimizer, loss=loss)
     history = model.fit(
         ds_train,
+        steps_per_epoch=infos.splits["train"].num_examples // BATCH_SIZE,
         validation_data=ds_test,
         validation_steps=10,
         epochs=TOTAL_NUMBER_OF_EPOCHS,
