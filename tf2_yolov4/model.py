@@ -1,12 +1,19 @@
 """
 Model class for YOLOv4
 """
+from pathlib import Path
+
 import tensorflow as tf
 
 from tf2_yolov4.anchors import YOLOV4_ANCHORS, compute_normalized_anchors
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
 from tf2_yolov4.heads.yolov3_head import yolov3_head
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
+from tf2_yolov4.tools.weights import (
+    DARKNET_AS_H5_PATH,
+    download_darknet_weights,
+    is_darknet_weights_available,
+)
 
 
 def YOLOv4(
@@ -17,6 +24,7 @@ def YOLOv4(
     yolo_max_boxes=50,
     yolo_iou_threshold=0.5,
     yolo_score_threshold=0.5,
+    weights="darknet",
 ):
     """
     YOLOv4 Model
@@ -44,6 +52,12 @@ def YOLOv4(
         ValueError: If height and width in the input_shape  is not a multiple of 32
 
     """
+    if not (weights in {"darknet", None} or Path(weights).is_file()):
+        raise ValueError(
+            "`weights` argument should either be 'darknet', None "
+            "or a path to a valid .h5 file"
+        )
+
     if (input_shape[0] % 32 != 0) | (input_shape[1] % 32 != 0):
         raise ValueError(
             f"Provided height and width in input_shape {input_shape} is not a multiple of 32"
@@ -69,11 +83,28 @@ def YOLOv4(
     medium_features = neck(lower_features)
     upper_features = head(medium_features)
 
-    return tf.keras.Model(inputs=inputs, outputs=upper_features, name="YOLOv4")
+    yolov4 = tf.keras.Model(inputs=inputs, outputs=upper_features, name="YOLOv4")
+    if weights is None:
+        return yolov4
+
+    if weights == "darknet":
+        if not is_darknet_weights_available():
+            download_darknet_weights(model)
+
+        model.load_weights(DARKNET_AS_H5_PATH, by_name=True, skip_mismatch=True)
+    elif Path(weights).is_file():
+        yolov4.load_weights(weights, by_name=True, skip_mismatch=True)
+
+    return yolov4
 
 
 if __name__ == "__main__":
-    model = YOLOv4(input_shape=(608, 416, 3), num_classes=80, anchors=YOLOV4_ANCHORS)
+    model = YOLOv4(
+        input_shape=(608, 416, 3),
+        weights="darknet",
+        num_classes=80,
+        anchors=YOLOV4_ANCHORS,
+    )
 
     outputs = model.predict(tf.random.uniform((16, 608, 416, 3)), steps=1)
     model.summary()
