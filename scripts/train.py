@@ -14,7 +14,7 @@ from tf2_yolov4.model import YOLOv4
 
 INPUT_SHAPE = (416, 416, 3)
 BATCH_SIZE = 8
-BOUNDING_BOXES_FIXED_NUMBER = 50
+BOUNDING_BOXES_FIXED_NUMBER = 60
 PASCAL_VOC_NUM_CLASSES = 20
 
 YOLOV4_ANCHORS_MASKS = [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
@@ -298,8 +298,8 @@ def prepare_dataset(
 
 
 if __name__ == "__main__":
-    voc_dataset, infos = tfds.load("voc", with_info=True, shuffle_files=True)
-    ds_train, ds_test = voc_dataset["train"], voc_dataset["test"]
+    voc_dataset, infos = tfds.load("voc/2012", with_info=True, shuffle_files=True)
+    ds_train, ds_test = voc_dataset["train"], voc_dataset["validation"]
     ds_train = prepare_dataset(
         ds_train,
         shuffle=True,
@@ -312,6 +312,9 @@ if __name__ == "__main__":
         apply_data_augmentation=False,
         transform_to_bbox_by_stage=True,
     )
+
+    steps_per_epoch = infos.splits["train"].num_examples // BATCH_SIZE
+    validation_steps = infos.splits["validation"].num_examples // BATCH_SIZE
 
     model = YOLOv4(
         input_shape=INPUT_SHAPE,
@@ -341,9 +344,9 @@ if __name__ == "__main__":
     model.compile(optimizer=optimizer, loss=loss)
     history = model.fit(
         ds_train,
-        steps_per_epoch=infos.splits["train"].num_examples // BATCH_SIZE,
+        steps_per_epoch=steps_per_epoch,
         validation_data=ds_test,
-        validation_steps=10,
+        validation_steps=validation_steps,
         epochs=ALL_FROZEN_EPOCH_NUMBER,
         callbacks=[
             tf.keras.callbacks.TensorBoard(log_dir=LOG_DIR),
@@ -360,9 +363,9 @@ if __name__ == "__main__":
     model.compile(optimizer=optimizer, loss=loss)
     history = model.fit(
         ds_train,
-        steps_per_epoch=infos.splits["train"].num_examples // BATCH_SIZE,
+        steps_per_epoch=steps_per_epoch,
         validation_data=ds_test,
-        validation_steps=10,
+        validation_steps=validation_steps,
         epochs=BACKBONE_FROZEN_EPOCH_NUMBER + ALL_FROZEN_EPOCH_NUMBER,
         initial_epoch=ALL_FROZEN_EPOCH_NUMBER,
         callbacks=[
@@ -381,9 +384,9 @@ if __name__ == "__main__":
     model.compile(optimizer=optimizer, loss=loss)
     history = model.fit(
         ds_train,
-        steps_per_epoch=infos.splits["train"].num_examples // BATCH_SIZE,
+        steps_per_epoch=steps_per_epoch,
         validation_data=ds_test,
-        validation_steps=10,
+        validation_steps=validation_steps,
         epochs=TOTAL_NUMBER_OF_EPOCHS,
         initial_epoch=ALL_FROZEN_EPOCH_NUMBER + BACKBONE_FROZEN_EPOCH_NUMBER,
         callbacks=[

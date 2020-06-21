@@ -20,8 +20,12 @@ model = YOLOv4(
     yolo_iou_threshold=0.5,
     yolo_score_threshold=0.15,
 )
+for layer in (
+        model.get_layer("CSPDarknet53").layers + model.get_layer("YOLOv4_neck").layers
+):
+    layer.trainable = False
 
-model.load_weights("../yolov4_full.h5")
+model.load_weights("../yolov4_all_frozen.h5")
 model.summary()
 
 boxes, scores, classes, valid_detections = model.predict(images)
