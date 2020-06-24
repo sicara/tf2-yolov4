@@ -1,3 +1,6 @@
+"""
+Module related to download of original Darknet weights (Keras-style)
+"""
 from pathlib import Path
 
 import numpy as np
@@ -50,10 +53,8 @@ def load_darknet_weights_in_yolo(yolo_model, darknet_weights_path):
 
     # Open darknet file and read headers
     darknet_weight_file = open(darknet_weights_path, "rb")
-    # pylint: disable=unused-variable
-    major, minor, revision, seen, _ = np.fromfile(
-        darknet_weight_file, dtype=np.int32, count=5
-    )
+    # First elements of file are major, minor, revision, seen, _
+    _ = np.fromfile(darknet_weight_file, dtype=np.int32, count=5)
 
     # Keep an index of which batch norm should be considered.
     # If batch norm is used with a convolution (meaning conv has no bias), the index is incremented
@@ -89,12 +90,10 @@ def load_darknet_weights_in_yolo(yolo_model, darknet_weights_path):
         )
 
         if use_bias:
-            # load conv weights and bias
-            # increase batch_norm offset
+            # load conv weights and bias, increase batch_norm offset
             layer.set_weights([conv_weights, conv_bias])
         else:
-            # load conv weights
-            # load batch norm weights
+            # load conv weights, load batch norm weights
             layer.set_weights([conv_weights])
             batch_norm_layers[current_matching_batch_norm_index].set_weights(
                 batch_norm_weights
@@ -121,6 +120,12 @@ def load_darknet_weights_in_yolo(yolo_model, darknet_weights_path):
 
 
 def is_darknet_weights_available():
+    """
+    Check if Darknet weights are already available locally
+
+    Returns:
+        bool: Whether or not the Darknet weight is available locally
+    """
     if not TF2_YOLOV4_DEFAULT_PATH.is_dir():
         TF2_YOLOV4_DEFAULT_PATH.mkdir()
 
@@ -130,6 +135,13 @@ def is_darknet_weights_available():
 
 
 def download_darknet_weights(yolov4_model):
+    """
+    Download original Darknet yolov4.weights file from Google Drive and
+    transforms it to a compatible .h5 format
+
+    Args:
+        yolov4_model (tf.keras.Model): YOLOv4 model
+    """
     is_darknet_original_weights_available = DARKNET_ORIGINAL_WEIGHTS_PATH.is_file()
 
     if not is_darknet_original_weights_available:
