@@ -5,7 +5,7 @@ from pathlib import Path
 
 import tensorflow as tf
 
-from tf2_yolov4.anchors import YOLOV4_ANCHORS, compute_normalized_anchors
+from tf2_yolov4.anchors import compute_normalized_anchors
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
 from tf2_yolov4.heads.yolov3_head import yolov3_head
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
@@ -89,24 +89,10 @@ def YOLOv4(
 
     if weights == "darknet":
         if not is_darknet_weights_available():
-            download_darknet_weights(model)
+            download_darknet_weights(yolov4)
 
-        model.load_weights(DARKNET_AS_H5_PATH, by_name=True, skip_mismatch=True)
+        yolov4.load_weights(DARKNET_AS_H5_PATH, by_name=True, skip_mismatch=True)
     elif Path(weights).is_file():
         yolov4.load_weights(weights, by_name=True, skip_mismatch=True)
 
     return yolov4
-
-
-if __name__ == "__main__":
-    model = YOLOv4(
-        input_shape=(608, 416, 3),
-        weights="darknet",
-        num_classes=80,
-        anchors=YOLOV4_ANCHORS,
-    )
-
-    outputs = model.predict(tf.random.uniform((16, 608, 416, 3)), steps=1)
-    model.summary()
-    for output in outputs:
-        print(output.shape)

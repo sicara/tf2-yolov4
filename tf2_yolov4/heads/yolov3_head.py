@@ -5,7 +5,6 @@ Implementation mainly inspired by from https://github.com/zzh8829/yolov3-tf2
 """
 import tensorflow as tf
 
-from tf2_yolov4.anchors import YOLOV3_ANCHORS, compute_normalized_anchors
 from tf2_yolov4.layers import conv_bn
 
 
@@ -249,17 +248,3 @@ def yolo_nms(yolo_feats, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshol
     )
 
     return [boxes, scores, classes, valid_detections]
-
-
-if __name__ == "__main__":
-
-    model = yolov3_head(
-        [(52, 52, 256), (26, 26, 512), (13, 13, 1024)],
-        anchors=compute_normalized_anchors(YOLOV3_ANCHORS, (416, 416, 3)),
-        num_classes=80,
-        training=True,
-        yolo_max_boxes=50,
-        yolo_iou_threshold=0.5,
-        yolo_score_threshold=0.8,
-    )
-    model.summary()
