@@ -12,7 +12,7 @@ from tf2_yolov4.anchors import YOLOV4_ANCHORS, compute_normalized_anchors
 from tf2_yolov4.heads.yolov3_head import yolov3_boxes_regression
 from tf2_yolov4.model import YOLOv4
 
-INPUT_SHAPE = (416, 416, 3)
+INPUT_SHAPE = (608, 608, 3)
 BATCH_SIZE = 8
 BOUNDING_BOXES_FIXED_NUMBER = 60
 PASCAL_VOC_NUM_CLASSES = 20
@@ -185,7 +185,7 @@ def transform_targets(y_train, anchors, anchor_masks, size):
         y_outs.append(transform_targets_for_output(y_train, grid_size, anchor_idxs))
         grid_size *= 2
 
-    return tuple(reversed(y_outs))
+    return tuple(y_outs)
 
 
 def pad_bounding_boxes_to_fixed_number_of_bounding_boxes(bounding_boxes, pad_number):
@@ -322,20 +322,17 @@ if __name__ == "__main__":
         num_classes=PASCAL_VOC_NUM_CLASSES,
         training=True,
     )
-    darknet_weights = Path("./yolov4.h5")
+    darknet_weights = Path(__file__).parent / "yolov4.h5"
     if darknet_weights.exists():
         model.load_weights(str(darknet_weights), by_name=True, skip_mismatch=True)
         print("Darknet weights loaded.")
 
     optimizer = tf.keras.optimizers.Adam(1e-4)
     loss = [
-        YoloLoss(
-            np.concatenate(list(YOLOV4_ANCHORS_NORMALIZED), axis=0)[mask]
-        )
+        YoloLoss(np.concatenate(list(YOLOV4_ANCHORS_NORMALIZED), axis=0)[mask])
         for mask in YOLOV4_ANCHORS_MASKS
     ]
 
-    model.summary()
     # Start training: 5 epochs with backbone + neck frozen
     for layer in (
         model.get_layer("CSPDarknet53").layers + model.get_layer("YOLOv4_neck").layers
@@ -378,7 +375,7 @@ if __name__ == "__main__":
             ),
         ],
     )
-    # Final training: 35 epochs with all weights unfrozen
+    # Final training
     for layer in model.get_layer("CSPDarknet53").layers:
         layer.trainable = True
     model.compile(optimizer=optimizer, loss=loss)
