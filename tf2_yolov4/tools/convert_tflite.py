@@ -1,3 +1,7 @@
+"""
+Script used to create a TfLite YOLOv4 model from previously trained weights.
+"""
+
 import click
 import tensorflow as tf
 
@@ -15,6 +19,12 @@ TFLITE_MODEL_PATH = "yolov4.tflite"
     "--weights_path", default=None, help="Path to .h5 file with model weights"
 )
 def convert_tflite(num_classes, weights_path):
+    """Creates a .tflite file with a trained YOLOv4 model
+
+    Args:
+        num_classes (int): Number of classes
+        weights_path (str, optional): Path to .h5 pre-trained weights file
+    """
     model = YOLOv4(
         input_shape=(HEIGHT, WIDTH, 3),
         anchors=YOLOV4_ANCHORS,
@@ -38,8 +48,8 @@ def convert_tflite(num_classes, weights_path):
     converter.allow_custom_ops = True
     tflite_model = converter.convert()
 
-    with tf.io.gfile.GFile(TFLITE_MODEL_PATH, "wb") as f:
-        f.write(tflite_model)
+    with tf.io.gfile.GFile(TFLITE_MODEL_PATH, "wb") as file:
+        file.write(tflite_model)
 
 
 if __name__ == "__main__":
