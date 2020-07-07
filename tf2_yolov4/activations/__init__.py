@@ -1,5 +1,5 @@
 """Activations layers"""
 
-from .mish import Mish
+from tf2_yolov4.activations.mish import Mish
 
 __all__ = ["Mish"]
