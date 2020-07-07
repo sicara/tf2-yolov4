@@ -1,11 +1,17 @@
 import numpy as np
 import tensorflow as tf
+from tf_image.application.augmentation_config import AugmentationConfig
+from tf_image.application.tools import random_augmentations
+from tf_image.core.convert_type_decorator import convert_type
 
 from tf2_yolov4.anchors import (
     YOLOV4_ANCHORS,
     YOLOV4_ANCHORS_MASKS,
     compute_normalized_anchors,
 )
+
+config = AugmentationConfig()
+
 
 BOUNDING_BOXES_FIXED_NUMBER = 60
 
@@ -99,17 +105,11 @@ def random_flip_right_with_bounding_boxes(images, bounding_boxes):
     return images, bounding_boxes
 
 
-def augment_images(images, bounding_boxes):
-    # Image transformations that do not affect bounding boxes
-    images = tf.image.random_hue(images, 0.15)
-    images = tf.image.random_brightness(images, 0.15)
-
-    # Transformations that affect bounding boxes
-    images, bounding_boxes = random_flip_right_with_bounding_boxes(
-        images, bounding_boxes
-    )
-
-    return images, bounding_boxes
+@convert_type
+def augment_image(image, bounding_boxes):
+    bboxes, labels = bounding_boxes[:, :-1], bounding_boxes[:, -1]
+    image_aug, bboxes_aug = random_augmentations(image, config, bboxes=bboxes)
+    return (image_aug, tf.concat([bboxes_aug, tf.expand_dims(labels, axis=-1)], axis=1))
 
 
 def prepare_dataset(
@@ -117,7 +117,7 @@ def prepare_dataset(
     shape,
     batch_size,
     shuffle=True,
-    apply_data_augmentation=False,
+    apply_data_augmentation=True,
     transform_to_bbox_by_stage=True,
     pad_number_of_boxes=BOUNDING_BOXES_FIXED_NUMBER,
     anchors=YOLOV4_ANCHORS,
@@ -152,10 +152,20 @@ def prepare_dataset(
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
     )
+
     if apply_data_augmentation:
         dataset = dataset.map(
-            augment_images, num_parallel_calls=tf.data.experimental.AUTOTUNE
+            augment_image, num_parallel_calls=tf.data.experimental.AUTOTUNE
         )
+
+    dataset = dataset.map(
+        lambda image, bounding_box: (
+            tf.image.resize(image, shape[:2]) / 255.0,
+            bounding_box,
+        ),
+        num_parallel_calls=tf.data.experimental.AUTOTUNE,
+    )
+
     if shuffle:
         dataset = dataset.shuffle(buffer_size=1000)
     dataset = dataset.map(
@@ -167,6 +177,7 @@ def prepare_dataset(
         ),
         num_parallel_calls=tf.data.experimental.AUTOTUNE,
     )
+
     dataset = dataset.batch(batch_size)
 
     if transform_to_bbox_by_stage:
