@@ -14,7 +14,7 @@ TFLITE_MODEL_PATH = "yolov4.tflite"
 @click.option(
     "--weights_path", default=None, help="Path to .h5 file with model weights"
 )
-def main(num_classes, weights_path):
+def convert_tflite(num_classes, weights_path):
     model = YOLOv4(
         input_shape=(HEIGHT, WIDTH, 3),
         anchors=YOLOV4_ANCHORS,
@@ -43,4 +43,4 @@ def main(num_classes, weights_path):
 
 
 if __name__ == "__main__":
-    main()
+    convert_tflite()
