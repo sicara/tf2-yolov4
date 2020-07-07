@@ -13,6 +13,26 @@ HEIGHT, WIDTH = (640, 960)
 TFLITE_MODEL_PATH = "yolov4.tflite"
 
 
+def create_tflite_model(model):
+    """Converts a YOLOv4 model to a TfLite model
+
+    Args:
+        model (tensorflow.python.keras.engine.training.Model): YOLOv4 model
+
+    Returns:
+        (bytes): a binary TfLite model
+    """
+    converter = tf.lite.TFLiteConverter.from_keras_model(model)
+    converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    converter.target_spec.supported_ops = [
+        tf.lite.OpsSet.TFLITE_BUILTINS,
+        tf.lite.OpsSet.SELECT_TF_OPS,
+    ]
+
+    converter.allow_custom_ops = True
+    return converter.convert()
+
+
 @click.command()
 @click.option("--num_classes", default=80, help="Number of classes")
 @click.option(
@@ -38,15 +58,7 @@ def convert_tflite(num_classes, weights_path):
     if weights_path:
         model.load_weights(weights_path)
 
-    converter = tf.lite.TFLiteConverter.from_keras_model(model)
-    converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    converter.target_spec.supported_ops = [
-        tf.lite.OpsSet.TFLITE_BUILTINS,
-        tf.lite.OpsSet.SELECT_TF_OPS,
-    ]
-
-    converter.allow_custom_ops = True
-    tflite_model = converter.convert()
+    tflite_model = create_tflite_model(model)
 
     with tf.io.gfile.GFile(TFLITE_MODEL_PATH, "wb") as file:
         file.write(tflite_model)
