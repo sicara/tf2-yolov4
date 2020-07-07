@@ -20,8 +20,5 @@ class Mish(Layer):
         >>> X = Mish()(X_input)
     """
 
-    def __init__(self, **kwargs):
-        super(Mish, self).__init__(**kwargs)
-
     def call(self, inputs, **kwargs):
         return inputs * tf.math.tanh(tf.math.softplus(inputs))
