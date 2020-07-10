@@ -26,15 +26,19 @@ NUM_CLASSES = 80
     type=click.Path(),
     help="Output tensorflow weights filepath (*.h5)",
 )
-def convert_darknet_weights(darknet_weights_path, output_weights_path):
+@click.option(
+    "--num_classes", "-n", default=NUM_CLASSES, type=int, help="Number of classes",
+)
+def convert_darknet_weights(darknet_weights_path, output_weights_path, num_classes):
     """ Converts yolov4 darknet weights to tensorflow weights (.h5 file)
 
     Args:
         darknet_weights_path (str): Input darknet weights filepath (*.weights).
         output_weights_path (str): Output tensorflow weights filepath (*.h5).
+        num_classes (int): Number of output classes
     """
     model = YOLOv4(
-        input_shape=INPUT_SHAPE, num_classes=NUM_CLASSES, anchors=YOLOV4_ANCHORS
+        input_shape=INPUT_SHAPE, num_classes=num_classes, anchors=YOLOV4_ANCHORS
     )
     # pylint: disable=E1101
     model.predict(np.random.random((1, *INPUT_SHAPE)))
