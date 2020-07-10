@@ -7,12 +7,15 @@ import numpy as np
 
 from tf2_yolov4.tools.download import download_file_from_google_drive
 
+
 TF2_YOLOV4_DEFAULT_PATH = Path.home() / ".tf2-yolov4"
-DARKNET_AS_H5_PATH = TF2_YOLOV4_DEFAULT_PATH / "yolov4.h5"
+DARKNET_WEIGHTS_PATH = TF2_YOLOV4_DEFAULT_PATH / "yolov4.h5"
 DARKNET_ORIGINAL_WEIGHTS_PATH = TF2_YOLOV4_DEFAULT_PATH / "yolov4.weights"
 
 YOLOV4_DARKNET_FILE_ID = "1cewMfusmPjYWbrnuJRuKhPMwRe_b9PaT"
 YOLOV4_DARKNET_FILE_SIZE = 249 * 1024 * 1024
+
+AVAILABLE_PRETRAINED_WEIGHTS_OPTIONS = ["darknet"]
 
 
 def load_darknet_weights_in_yolo(yolo_model, darknet_weights_path):
@@ -119,19 +122,68 @@ def load_darknet_weights_in_yolo(yolo_model, darknet_weights_path):
     return yolo_model
 
 
-def is_darknet_weights_available():
+def get_weights_by_keyword_or_path(weights, model):
     """
-    Check if Darknet weights are already available locally
+    Return weights path for keyword for pretrained model.
+
+    Args:
+        weights (str): Path or pretrained model keyword.
+        model (tf.keras.Model): Model to load weights into.
 
     Returns:
-        bool: Whether or not the Darknet weight is available locally
+        str: Path to the weights to load.
     """
-    if not TF2_YOLOV4_DEFAULT_PATH.is_dir():
-        TF2_YOLOV4_DEFAULT_PATH.mkdir()
+    if (
+        weights not in [None, *AVAILABLE_PRETRAINED_WEIGHTS_OPTIONS]
+        and not Path(weights).is_file()
+    ):
+        raise ValueError(
+            f"`weights` argument should either be in {AVAILABLE_PRETRAINED_WEIGHTS_OPTIONS}, "
+            "a path to a valid .h5 file or None (random initialization)"
+        )
 
-    is_darknet_as_h5_weights_available = DARKNET_AS_H5_PATH.is_file()
+    if weights is None:
+        return None
 
-    return is_darknet_as_h5_weights_available
+    if Path(weights).is_file():
+        return weights
+
+    return get_weights_by_keyword(weights, model)
+
+
+def get_weights_by_keyword(weights, model):
+    """
+    Access pretrained weights based on keyword. Accepted keywords are: ["darknet"].
+
+    Args:
+        weights (str): Path or pretrained model keyword.
+        model (tf.keras.Model): Model to load weights into.
+
+    Returns:
+        str: Path to the weights to load.
+    """
+    if weights == "darknet":
+        return get_darknet_weights_path_by_download(model)
+
+    return None
+
+
+def get_darknet_weights_path_by_download(model):
+    """
+    Return Darknet weights path pretrained on COCO.
+
+    Args:
+        model (tf.keras.Model): Model to load weights into.
+
+    Returns:
+        str: Path to the weights to load.
+    """
+    if DARKNET_WEIGHTS_PATH.is_file():
+        return DARKNET_WEIGHTS_PATH
+
+    darknet_weights_path = download_darknet_weights(model)
+
+    return darknet_weights_path
 
 
 def download_darknet_weights(yolov4_model):
@@ -142,6 +194,9 @@ def download_darknet_weights(yolov4_model):
     Args:
         yolov4_model (tf.keras.Model): YOLOv4 model
     """
+    if not TF2_YOLOV4_DEFAULT_PATH.is_dir():
+        TF2_YOLOV4_DEFAULT_PATH.mkdir()
+
     is_darknet_original_weights_available = DARKNET_ORIGINAL_WEIGHTS_PATH.is_file()
 
     if not is_darknet_original_weights_available:
@@ -156,6 +211,6 @@ def download_darknet_weights(yolov4_model):
     yolov4 = load_darknet_weights_in_yolo(
         yolov4_model, str(DARKNET_ORIGINAL_WEIGHTS_PATH)
     )
-    yolov4.save_weights(str(DARKNET_AS_H5_PATH))
+    yolov4.save_weights(str(DARKNET_WEIGHTS_PATH))
 
-    yolov4.load_weights(str(DARKNET_AS_H5_PATH), by_name=True, skip_mismatch=True)
+    return DARKNET_WEIGHTS_PATH

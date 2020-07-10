@@ -1,19 +1,13 @@
 """
 Model class for YOLOv4
 """
-from pathlib import Path
-
 import tensorflow as tf
 
 from tf2_yolov4.anchors import compute_normalized_anchors
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
 from tf2_yolov4.heads.yolov3_head import yolov3_head
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
-from tf2_yolov4.tools.weights import (
-    DARKNET_AS_H5_PATH,
-    download_darknet_weights,
-    is_darknet_weights_available,
-)
+from tf2_yolov4.tools.weights import get_weights_by_keyword_or_path
 
 
 def YOLOv4(
@@ -42,7 +36,9 @@ def YOLOv4(
             during non max regression.
         yolo_score_threshold (float between 0. and 1.): Boxes with score lower than this threshold will be filtered
             out during non max regression.
-
+        weights (str): one of `None` (random initialization),
+            'darknet' (pre-training on COCO),
+            or the path to the weights file to be loaded.
     Returns:
         tf.keras.Model: YoloV4 model
 
@@ -52,12 +48,6 @@ def YOLOv4(
         ValueError: If height and width in the input_shape  is not a multiple of 32
 
     """
-    if not (weights in {"darknet", None} or Path(weights).is_file()):
-        raise ValueError(
-            "`weights` argument should either be 'darknet', None "
-            "or a path to a valid .h5 file"
-        )
-
     if (input_shape[0] % 32 != 0) | (input_shape[1] % 32 != 0):
         raise ValueError(
             f"Provided height and width in input_shape {input_shape} is not a multiple of 32"
@@ -84,15 +74,9 @@ def YOLOv4(
     upper_features = head(medium_features)
 
     yolov4 = tf.keras.Model(inputs=inputs, outputs=upper_features, name="YOLOv4")
-    if weights is None:
-        return yolov4
 
-    if weights == "darknet":
-        if not is_darknet_weights_available():
-            download_darknet_weights(yolov4)
-
-        yolov4.load_weights(DARKNET_AS_H5_PATH, by_name=True, skip_mismatch=True)
-    elif Path(weights).is_file():
-        yolov4.load_weights(weights, by_name=True, skip_mismatch=True)
+    weights_path = get_weights_by_keyword_or_path(weights, model=yolov4)
+    if weights_path is not None:
+        yolov4.load_weights(weights_path, by_name=True, skip_mismatch=True)
 
     return yolov4

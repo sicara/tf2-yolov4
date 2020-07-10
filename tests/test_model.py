@@ -5,6 +5,7 @@ import tensorflow as tf
 
 from tf2_yolov4.anchors import YOLOV4_ANCHORS
 from tf2_yolov4.model import YOLOv4
+from tf2_yolov4.tools import weights
 
 
 def test_model_should_predict_valid_shapes_at_training(yolov4_training, num_classes):
@@ -61,12 +62,8 @@ def test_should_download_pretrained_weight_if_not_available(mocker):
     ).return_value = mocker.sentinel.yolov4
     mocker.sentinel.yolov4.load_weights = mocker.MagicMock()
 
-    mock_is_darknet_weights_called = mocker.patch(
-        "tf2_yolov4.model.is_darknet_weights_available"
-    )
-    mock_is_darknet_weights_called.return_value = False
     mock_download_darknet_weights = mocker.patch(
-        "tf2_yolov4.model.download_darknet_weights"
+        "tf2_yolov4.tools.weights.download_darknet_weights"
     )
 
     YOLOv4(
@@ -75,7 +72,6 @@ def test_should_download_pretrained_weight_if_not_available(mocker):
         anchors=YOLOV4_ANCHORS,
         weights="darknet",
     )
-    mock_is_darknet_weights_called.assert_called_once_with()
     mock_download_darknet_weights.assert_called_once_with(mocker.sentinel.yolov4)
 
 
@@ -89,12 +85,11 @@ def test_should_load_pretrained_weights_if_available(mocker):
     ).return_value = mocker.sentinel.yolov4
     mocker.sentinel.yolov4.load_weights = mocker.MagicMock()
 
-    mock_is_darknet_weights_called = mocker.patch(
-        "tf2_yolov4.model.is_darknet_weights_available"
+    mocker.patch.object(
+        weights, "DARKNET_WEIGHTS_PATH", mocker.MagicMock(is_file=lambda: True)
     )
-    mock_is_darknet_weights_called.return_value = True
     mock_download_darknet_weights = mocker.patch(
-        "tf2_yolov4.model.download_darknet_weights"
+        "tf2_yolov4.tools.weights.download_darknet_weights"
     )
 
     YOLOv4(
@@ -103,7 +98,6 @@ def test_should_load_pretrained_weights_if_available(mocker):
         anchors=YOLOV4_ANCHORS,
         weights="darknet",
     )
-    mock_is_darknet_weights_called.assert_called_once_with()
     assert mock_download_darknet_weights.call_count == 0
 
 
