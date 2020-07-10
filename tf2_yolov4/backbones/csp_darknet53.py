@@ -112,8 +112,3 @@ def csp_darknet53(input_shape):
     output_3 = csp_block(output_2, filters=1024, num_blocks=4)
 
     return tf.keras.Model(inputs, [output_1, output_2, output_3], name="CSPDarknet53")
-
-
-if __name__ == "__main__":
-    cspdarknet53 = csp_darknet53((416, 416, 3))
-    cspdarknet53.summary()

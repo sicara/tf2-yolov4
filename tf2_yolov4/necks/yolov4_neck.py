@@ -70,8 +70,3 @@ def yolov4_neck(input_shapes):
     return tf.keras.Model(
         [input_1, input_2, input_3], [output_1, output_2, output_3], name="YOLOv4_neck"
     )
-
-
-if __name__ == "__main__":
-    model = yolov4_neck([(52, 52, 256), (26, 26, 512), (13, 13, 1024)])
-    model.summary()

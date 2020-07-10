@@ -3,10 +3,11 @@ Model class for YOLOv4
 """
 import tensorflow as tf
 
-from tf2_yolov4.anchors import YOLOV4_ANCHORS, compute_normalized_anchors
+from tf2_yolov4.anchors import compute_normalized_anchors
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53
 from tf2_yolov4.heads.yolov3_head import yolov3_head
 from tf2_yolov4.necks.yolov4_neck import yolov4_neck
+from tf2_yolov4.tools.weights import get_weights_by_keyword_or_path
 
 
 def YOLOv4(
@@ -17,6 +18,7 @@ def YOLOv4(
     yolo_max_boxes=50,
     yolo_iou_threshold=0.5,
     yolo_score_threshold=0.5,
+    weights="darknet",
 ):
     """
     YOLOv4 Model
@@ -34,7 +36,9 @@ def YOLOv4(
             during non max regression.
         yolo_score_threshold (float between 0. and 1.): Boxes with score lower than this threshold will be filtered
             out during non max regression.
-
+        weights (str): one of `None` (random initialization),
+            'darknet' (pre-training on COCO),
+            or the path to the weights file to be loaded.
     Returns:
         tf.keras.Model: YoloV4 model
 
@@ -69,13 +73,10 @@ def YOLOv4(
     medium_features = neck(lower_features)
     upper_features = head(medium_features)
 
-    return tf.keras.Model(inputs=inputs, outputs=upper_features, name="YOLOv4")
+    yolov4 = tf.keras.Model(inputs=inputs, outputs=upper_features, name="YOLOv4")
 
+    weights_path = get_weights_by_keyword_or_path(weights, model=yolov4)
+    if weights_path is not None:
+        yolov4.load_weights(weights_path, by_name=True, skip_mismatch=True)
 
-if __name__ == "__main__":
-    model = YOLOv4(input_shape=(608, 416, 3), num_classes=80, anchors=YOLOV4_ANCHORS)
-
-    outputs = model.predict(tf.random.uniform((16, 608, 416, 3)), steps=1)
-    model.summary()
-    for output in outputs:
-        print(output.shape)
+    return yolov4
