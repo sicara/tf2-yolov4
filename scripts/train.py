@@ -65,7 +65,6 @@ def launch_training(batch_size, weights_path, all_frozen_epoch_number, backbone_
         for mask in YOLOV4_ANCHORS_MASKS
     ]
 
-    # Start training: 5 epochs with backbone + neck frozen
     for layer in (
         model.get_layer("CSPDarknet53").layers + model.get_layer("YOLOv4_neck").layers
     ):
@@ -88,7 +87,6 @@ def launch_training(batch_size, weights_path, all_frozen_epoch_number, backbone_
         ],
     )
 
-    # Keep training: 10 epochs with backbone frozen -- unfreeze neck
     for layer in model.get_layer("YOLOv4_neck").layers:
         layer.trainable = True
     model.compile(optimizer=optimizer, loss=loss)
