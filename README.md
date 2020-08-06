@@ -39,13 +39,20 @@ Requirements:
 
 ## Pretrained weights
 
-To load the Darknet weights trained on COCO, you have to:
+Our YOLOv4 implementation supports the `weights` argument similarly to Keras applications. To load a model with pretrained
+weights, you can simply call:
 
-- get the weights (yolov4.weights) from [AlexeyAB/darknet](https://www.github.com/AlexeyAB/darknet)
-- run `convert-darknet-weights PATH_TO/yolov4.weights`
+```python
+# Loads Darknet weights trained on COCO
+model = YOLOv4(
+    input_shape,
+    num_classes,
+    anchors,
+    weights="darknet",
+)
+```
 
-TF weights should be saved as `yolov4.h5`.
-For more information about the conversion script, run `convert-darknet-weights --help`.
+If weights are available locally, it will use them. Else, it will automatically download the weights.
 
 ## Roadmap
 
@@ -65,7 +72,7 @@ For more information about the conversion script, run `convert-darknet-weights -
     - [ ] Mosaic Data Augmentation
     - [ ] DropBlock
 - [ ] Enhancements
-    - [ ] Automatic download of pretrained weights (like Keras applications)
+    - [x] Automatic download of pretrained weights (like Keras applications)
 
 ## References
 
