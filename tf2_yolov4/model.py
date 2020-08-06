@@ -77,6 +77,6 @@ def YOLOv4(
 
     weights_path = get_weights_by_keyword_or_path(weights, model=yolov4)
     if weights_path is not None:
-        yolov4.load_weights(weights_path, by_name=True, skip_mismatch=True)
+        yolov4.load_weights(str(weights_path), by_name=True, skip_mismatch=True)
 
     return yolov4
