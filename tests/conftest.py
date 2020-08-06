@@ -1,4 +1,5 @@
 import pytest
+import tensorflow as tf
 
 from tf2_yolov4.anchors import YOLOV4_ANCHORS
 from tf2_yolov4.backbones.csp_darknet53 import csp_darknet53

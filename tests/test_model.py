@@ -15,9 +15,9 @@ def test_model_should_predict_valid_shapes_at_training(yolov4_training, num_clas
         tf.random.uniform((n_images, 416, 416, 3))
     )
 
-    assert output_1.shape == (n_images, 52, 52, 3, expected_head_shape)
+    assert output_1.shape == (n_images, 13, 13, 3, expected_head_shape)
     assert output_2.shape == (n_images, 26, 26, 3, expected_head_shape)
-    assert output_3.shape == (n_images, 13, 13, 3, expected_head_shape)
+    assert output_3.shape == (n_images, 52, 52, 3, expected_head_shape)
 
 
 def test_model_should_predict_valid_shapes_at_inference(

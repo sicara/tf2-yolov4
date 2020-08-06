@@ -21,8 +21,17 @@ from tf2_yolov4.model import YOLOv4
 INPUT_SHAPE = (608, 608, 3)
 
 
-def launch_training(batch_size, weights_path, all_frozen_epoch_number, backbone_frozen_epoch_number, num_epochs, dataset_name="voc"):
-    LOG_DIR = Path("./logs") / dataset_name / datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+def launch_training(
+    batch_size,
+    weights_path,
+    all_frozen_epoch_number,
+    backbone_frozen_epoch_number,
+    num_epochs,
+    dataset_name="voc",
+):
+    LOG_DIR = (
+        Path("./logs") / dataset_name / datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+    )
 
     voc_dataset, infos = tfds.load(dataset_name, with_info=True, shuffle_files=True)
 
@@ -139,13 +148,49 @@ def launch_training(batch_size, weights_path, all_frozen_epoch_number, backbone_
 
 @click.command()
 @click.option("--batch_size", type=int, default=16, help="Size of mini-batch")
-@click.option("--weights_path", type=click.Path(exists=True), default=None, help="Path to pretrained weights")
-@click.option("--all_frozen_epoch_number", type=int, default=20, help="Number of epochs to perform with backbone and neck frozen")
-@click.option("--backbone_frozen_epoch_number", type=int, default=10, help="Number of epochs to perform with backbone frozen")
-@click.option("--num_epochs", type=int, default=50, help="Total number of epochs to perform")
-@click.option("--dataset_name", type=str, default="voc", help="Dataset used during training. Refer to TensorFlow Datasets documentation for dataset names.")
-def launch_training_command(batch_size, weights_path, all_frozen_epoch_number, backbone_frozen_epoch_number, num_epochs, dataset_name):
-    launch_training(batch_size, weights_path, all_frozen_epoch_number, backbone_frozen_epoch_number, num_epochs, dataset_name)
+@click.option(
+    "--weights_path",
+    type=click.Path(exists=True),
+    default=None,
+    help="Path to pretrained weights",
+)
+@click.option(
+    "--all_frozen_epoch_number",
+    type=int,
+    default=20,
+    help="Number of epochs to perform with backbone and neck frozen",
+)
+@click.option(
+    "--backbone_frozen_epoch_number",
+    type=int,
+    default=10,
+    help="Number of epochs to perform with backbone frozen",
+)
+@click.option(
+    "--num_epochs", type=int, default=50, help="Total number of epochs to perform"
+)
+@click.option(
+    "--dataset_name",
+    type=str,
+    default="voc",
+    help="Dataset used during training. Refer to TensorFlow Datasets documentation for dataset names.",
+)
+def launch_training_command(
+    batch_size,
+    weights_path,
+    all_frozen_epoch_number,
+    backbone_frozen_epoch_number,
+    num_epochs,
+    dataset_name,
+):
+    launch_training(
+        batch_size,
+        weights_path,
+        all_frozen_epoch_number,
+        backbone_frozen_epoch_number,
+        num_epochs,
+        dataset_name,
+    )
 
 
 if __name__ == "__main__":
