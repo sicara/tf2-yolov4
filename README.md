@@ -52,7 +52,7 @@ model = YOLOv4(
 )
 ```
 
-If weights are available locally, it will use them. Else, it will automatically download the weights.
+If weights are available locally, they will be used. Otherwise, they will be automatically downloaded.
 
 ## Roadmap
 
