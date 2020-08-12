@@ -29,10 +29,6 @@ def load_darknet_weights_in_yolo(yolo_model, darknet_weights_path):
     Returns:
         tf.keras.Model: YOLOv4 model with Darknet weights loaded.
     """
-    sample_conv_weights = (
-        yolo_model.get_layer("CSPDarknet53").get_layer("conv2d_32").get_weights()[0]
-    )
-
     model_layers = (
         yolo_model.get_layer("CSPDarknet53").layers
         + yolo_model.get_layer("YOLOv4_neck").layers
@@ -107,17 +103,6 @@ def load_darknet_weights_in_yolo(yolo_model, darknet_weights_path):
     remaining_chars = len(darknet_weight_file.read())
     darknet_weight_file.close()
     assert remaining_chars == 0
-
-    # Check if weights have been updated
-    sample_conv_weights_after_loading = (
-        yolo_model.get_layer("CSPDarknet53").get_layer("conv2d_32").get_weights()[0]
-    )
-    np.testing.assert_raises(
-        AssertionError,
-        np.testing.assert_array_equal,
-        sample_conv_weights,
-        sample_conv_weights_after_loading,
-    )
 
     return yolo_model
 

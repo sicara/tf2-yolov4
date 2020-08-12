@@ -118,5 +118,5 @@ def test_should_load_weights_from_file_if_path_exists(mocker):
         weights=Path(__file__),
     )
     mocker.sentinel.yolov4.load_weights.assert_called_once_with(
-        Path(__file__), by_name=True, skip_mismatch=True,
+        str(Path(__file__)), by_name=True, skip_mismatch=True,
     )
