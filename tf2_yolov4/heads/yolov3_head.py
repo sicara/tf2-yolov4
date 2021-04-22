@@ -94,7 +94,7 @@ def yolov3_head(
     if training:
         return tf.keras.Model(
             [input_1, input_2, input_3],
-            [output_1, output_2, output_3],
+            [output_3, output_2, output_1],
             name="YOLOv3_head",
         )
 
@@ -119,7 +119,7 @@ def yolov3_head(
             yolo_score_threshold=yolo_score_threshold,
         ),
         name="yolov4_nms",
-    )([predictions_1, predictions_2, predictions_3])
+    )([predictions_3, predictions_2, predictions_1])
 
     return tf.keras.Model([input_1, input_2, input_3], output, name="YOLOv3_head")
 
@@ -177,6 +177,7 @@ def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
     box_xy = tf.sigmoid(box_xy)
     objectness = tf.sigmoid(objectness)
     class_probs = tf.sigmoid(class_probs)
+    predicted_box = tf.concat((box_xy, box_wh), axis=-1)
 
     grid = tf.meshgrid(tf.range(grid_size_y), tf.range(grid_size_x))
     grid = tf.expand_dims(tf.stack(grid, axis=-1), axis=2)  # [gy, gx, 1, 2]
@@ -190,7 +191,7 @@ def yolov3_boxes_regression(feats_per_stage, anchors_per_stage):
     box_x2y2 = box_xy + box_wh / 2
     bbox = tf.concat([box_x1y1, box_x2y2], axis=-1)
 
-    return bbox, objectness, class_probs
+    return bbox, objectness, class_probs, predicted_box
 
 
 def yolo_nms(yolo_feats, yolo_max_boxes, yolo_iou_threshold, yolo_score_threshold):

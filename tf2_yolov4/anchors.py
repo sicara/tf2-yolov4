@@ -9,6 +9,8 @@ YOLOV4_ANCHORS = [
     np.array([(142, 110), (192, 243), (459, 401)], np.float32),
 ]
 
+YOLOV4_ANCHORS_MASKS = [[6, 7, 8], [3, 4, 5], [0, 1, 2]]
+
 YOLOV3_ANCHORS = [
     np.array([(10, 13), (16, 30), (33, 23)], np.float32),
     np.array([(30, 61), (62, 45), (59, 119)], np.float32),
