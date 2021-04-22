@@ -1,6 +1,5 @@
 from setuptools import find_packages, setup
 
-
 with open("README.md", "r") as f:
     long_description = f.read()
 
@@ -19,7 +18,8 @@ setup(
     python_requires=">=3.6",
     entry_points={
         "console_scripts": [
-            "convert-darknet-weights = tf2_yolov4.tools.convert_darknet_weights:convert_darknet_weights"
+            "convert-darknet-weights = tf2_yolov4.tools.convert_darknet_weights:convert_darknet_weights",
+            "convert-tflite = tf2_yolov4.tools.convert_tflite:convert_tflite",
         ]
     },
     classifiers=[
